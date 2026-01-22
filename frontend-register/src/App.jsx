@@ -12,7 +12,9 @@ import ScannerPage from './pages/ScannerPage';
 // Initialize Socket outside component
 // Replace with your actual backend URL
 // App.jsx or Socket config file
-const SOCKET_URL = "http://127.0.0.1:3001"; 
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+
 
 const socket = io(SOCKET_URL, {
   transports: ['websocket'],
