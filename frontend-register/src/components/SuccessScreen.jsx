@@ -3,8 +3,8 @@ import { CheckCircle, Trophy, Home, Share2, Calendar } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 
 const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
-  const teamName = data?.team?.name || "Team";
-  const ticketId = data?.ticket?.id;
+  const teamName = data?.team || "Team";
+  const ticketId = data?.ticket;
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">

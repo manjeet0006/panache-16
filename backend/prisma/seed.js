@@ -2,120 +2,110 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('--- 🧹 1. Cleaning Database ---');
-  // Order is critical to avoid Foreign Key constraint errors
-  const tablenames = [
-    'Score', 'JudgeAssignment', 'Member', 'EntryLog', 'EventInvite', 
-    'Team', 'RegistrationRequest', 'Department', 'Event', 'Judge', 
-    'Admin', 'College'
-  ];
+  console.log("🧹 Cleaning database...");
 
-  for (const table of tablenames) {
-    await prisma[table].deleteMany();
+  try {
+    // 1. DELETE DATA IN REVERSE ORDER OF RELATIONS
+    await prisma.entryLog.deleteMany({});
+    await prisma.score.deleteMany({});
+    await prisma.member.deleteMany({});
+    await prisma.eventInvite.deleteMany({});
+    await prisma.team.deleteMany({});
+    await prisma.judgeAssignment.deleteMany({});
+    await prisma.judge.deleteMany({});
+    await prisma.registrationRequest.deleteMany({});
+    await prisma.department.deleteMany({});
+    await prisma.college.deleteMany({});
+    await prisma.event.deleteMany({});
+    await prisma.admin.deleteMany({});
+
+    console.log("✨ Database cleaned. Creating Colleges & Departments...");
+
+    // 2. CREATE INTERNAL COLLEGE
+    const vgu = await prisma.college.create({
+      data: {
+        name: 'Vivekananda Global University',
+        city: 'Jaipur',
+        isInternal: true,
+      },
+    });
+
+    const vguDepts = [
+      { name: 'Computer Science & Engineering', code: 'VGUCS26' },
+      { name: 'Management', code: 'VGUMGT26' },
+      { name: 'Hotel Management', code: 'VGUHM26' },
+    ];
+
+    for (const d of vguDepts) {
+      await prisma.department.create({
+        data: { name: d.name, secretCode: d.code, collegeId: vgu.id },
+      });
+    }
+
+    console.log("🎟️ Creating Multiple Events...");
+
+    // 3. DEFINE EVENTS
+    const eventsToSeed = [
+      {
+        id: 'panache-main-2026',
+        name: 'Panache 2026: Grand Finale',
+        description: 'The flagship cultural show.',
+        category: 'PANACHE',
+        allowOutside: true, // Requires Razorpay for outsiders
+        eventPrice: "499",
+        minPlayers: 3,
+        maxPlayers: 8,
+      },
+      {
+        id: 'coding-warriors-2026',
+        name: 'Hack-a-Thon 2.0',
+        description: '24-hour coding challenge.',
+        category: 'PRAGATI',
+        allowOutside: true,
+        eventPrice: "299",
+        minPlayers: 1,
+        maxPlayers: 4,
+      },
+      {
+        id: 'vgu-internal-talent',
+        name: 'VGU Talent Hunt (Internal)',
+        description: 'Exclusively for VGU students.',
+        category: 'PRATISHTHA',
+        allowOutside: false, // Only VGU Dept Codes allowed
+        eventPrice: "0",
+        minPlayers: 1,
+        maxPlayers: 1,
+      },
+    ];
+
+    for (const eventData of eventsToSeed) {
+      const createdEvent = await prisma.event.create({ data: eventData });
+
+      // 4. CREATE INVITE CODES FOR OUTSIDE EVENTS
+      if (eventData.allowOutside) {
+        const codes = [`EXT-${eventData.id.slice(0, 3).toUpperCase()}-1`, `EXT-${eventData.id.slice(0, 3).toUpperCase()}-2` ];
+        for (const code of codes) {
+          await prisma.eventInvite.create({
+            data: { code, eventId: createdEvent.id, isUsed: false },
+          });
+        }
+      }
+    }
+
+    // 5. CREATE ADMIN
+    await prisma.admin.create({
+      data: {
+        name: 'Super Admin',
+        email: 'admin@panache.in',
+        password: 'adminpassword123',
+      },
+    });
+
+    console.log("🏁 Seeding complete! Database is fresh with multiple events.");
+  } catch (error) {
+    console.error("❌ Seeding Error:", error);
+    process.exit(1);
   }
-
-  console.log('--- 🏛️ 2. Seeding Colleges ---');
-  const vgu = await prisma.college.create({
-    data: { name: 'Vivekananda Global University', city: 'Jaipur', isInternal: true },
-  });
-
-  const mnit = await prisma.college.create({
-    data: { name: 'MNIT Jaipur', city: 'Jaipur', isInternal: false },
-  });
-
-  const jecrc = await prisma.college.create({
-    data: { name: 'JECRC University', city: 'Jaipur', isInternal: false },
-  });
-
-  console.log('--- 🏢 3. Seeding Departments (Internal VGU) ---');
-  // These codes only work for events where allowOutside = false
-  const cse = await prisma.department.create({
-    data: { name: 'Computer Science', secretCode: 'VGU-CSE-2026', collegeId: vgu.id },
-  });
-  const me = await prisma.department.create({
-    data: { name: 'Mechanical Engineering', secretCode: 'VGU-ME-2026', collegeId: vgu.id },
-  });
-  const hm = await prisma.department.create({
-    data: { name: 'Hotel Management', secretCode: 'VGU-HM-2026', collegeId: vgu.id },
-  });
-
-  console.log('--- 🏆 4. Seeding Events ---');
-
-  // TYPE A: INTERNAL ONLY (Panache Category)
-  const fashionShow = await prisma.event.create({
-    data: {
-      name: 'Panache Fashion Show',
-      description: 'The signature ramp walk competition for VGU students.',
-      category: 'PANACHE',
-      minPlayers: 8,
-      maxPlayers: 15,
-      allowOutside: false, // Path: Dept Secret Code
-      criteria: ['Walk', 'Costume', 'Confidence'],
-    },
-  });
-
-  // TYPE B: OPEN EVENTS (Pragati Category)
-  const codeathon = await prisma.event.create({
-    data: {
-      name: 'Code-A-Thon 2026',
-      description: '24-hour national level hackathon.',
-      category: 'PRAGATI',
-      minPlayers: 2,
-      maxPlayers: 4,
-      allowOutside: true, // Path: Invite Code for EVERYONE
-      criteria: ['Logic', 'UI/UX', 'Functionality'],
-    },
-  });
-
-  const sharkTank = await prisma.event.create({
-    data: {
-      name: 'VGU Shark Tank',
-      description: 'Pitching ideas to venture capitalists.',
-      category: 'PRATISHTHA',
-      minPlayers: 1,
-      maxPlayers: 3,
-      allowOutside: true, // Path: Invite Code for EVERYONE
-      criteria: ['Innovation', 'Scalability', 'Revenue Model'],
-    },
-  });
-
-  console.log('--- 🎟️ 5. Seeding Invite Codes ---');
-  await prisma.eventInvite.createMany({
-    data: [
-      // For Codeathon
-      { code: 'MNIT-HACK-77', eventId: codeathon.id },
-      { code: 'JECRC-HACK-12', eventId: codeathon.id },
-      { code: 'VGU-TEAM-HACK-01', eventId: codeathon.id }, // Specifically for VGU Team
-      
-      // For Shark Tank
-      { code: 'GUEST-PITCH-01', eventId: sharkTank.id },
-      { code: 'VGU-SHARK-01', eventId: sharkTank.id },
-    ],
-  });
-
-  console.log('--- ⚖️ 6. Seeding Judges & Admin ---');
-  const admin = await prisma.admin.create({
-    data: {
-      name: 'Main Admin',
-      email: 'admin@vgu.ac.in',
-      password: 'hashed_password_here', // Use bcrypt in production
-    },
-  });
-
-  const judge = await prisma.judge.create({
-    data: {
-      name: 'Dr. Satish Kumar',
-      email: 'satish@vgu.ac.in',
-      password: 'judge_password_here',
-    },
-  });
-
-  // Assign judge to the hackathon
-  await prisma.judgeAssignment.create({
-    data: { judgeId: judge.id, eventId: codeathon.id },
-  });
-
-  console.log('✅ Full Seeding Complete!');
 }
 
 main()

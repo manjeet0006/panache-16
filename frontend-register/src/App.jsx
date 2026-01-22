@@ -8,6 +8,9 @@ import Home from './pages/Home';
 import EventsExplorer from './pages/Events';
 import RegisterForm from './pages/RegisterForm';
 import ScannerPage from './pages/ScannerPage';
+import Footer from './components/Footer';
+import Header from './components/Header';
+
 
 // Initialize Socket outside component
 // Replace with your actual backend URL
@@ -48,25 +51,7 @@ function App() {
           </div>
         )}
 
-        {/* Global Glassmorphic Navbar */}
-        <nav className="fixed top-0 left-0 right-0 z-[100] border-b border-white/10 bg-black/20 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(236,72,153,0.3)] group-hover:rotate-12 transition-transform">
-                <span className="text-white font-black text-2xl">P</span>
-              </div>
-              <span className="text-2xl font-black tracking-tighter uppercase italic">
-                Panache <span className="text-pink-500">26</span>
-              </span>
-            </Link>
-
-            <div className="hidden md:flex gap-8 text-sm font-bold uppercase tracking-widest text-gray-400">
-              <Link to="/" className="hover:text-pink-500 transition-colors">Home</Link>
-              <Link to="/events" className="hover:text-pink-500 transition-colors">All Events</Link>
-              <Link to="/scan" className="text-pink-500 border-b border-pink-500/50">Scanner</Link>
-            </div>
-          </div>
-        </nav>
+        <Header />
 
         <main className="pt-20">
           <Routes>
@@ -78,12 +63,7 @@ function App() {
           </Routes>
         </main>
 
-        <footer className="border-t border-white/10 py-12 bg-black mt-20">
-          <div className="max-w-7xl mx-auto px-6 text-center md:text-left">
-            <h2 className="text-xl font-bold uppercase tracking-tighter text-pink-500">Panache 2026</h2>
-            <p className="text-gray-600 text-xs mt-2">© 2026 Developed by Panache Tech Team</p>
-          </div>
-        </footer>
+        <Footer />
 
         <Toaster theme="dark" richColors position="top-right" />
       </div>

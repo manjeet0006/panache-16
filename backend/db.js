@@ -1,3 +1,13 @@
-import { PrismaClient } from '@prisma/client';
-// No need to pass URL here, Prisma 6 reads from .env automatically
-export const prisma = new PrismaClient();
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis;
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: ["error"]
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}

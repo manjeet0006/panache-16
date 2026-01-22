@@ -14,136 +14,141 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-
 // --- CORE MODELS ---
 
 model College {
-  id          String       @id @default(uuid())
-  name        String
-  city        String
-  isInternal  Boolean      @default(false) // True for YOUR college
-  
+  id         String  @id @default(uuid())
+  name       String
+  city       String
+  isInternal Boolean @default(false) // True for YOUR college
+
   departments Department[]
   teams       Team[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Department {
-  id         String   @id @default(uuid())
+  id         String @id @default(uuid())
   name       String
   // ✅ REQ: One secret code for all events for this specific department
-  secretCode String   
-  
-  collegeId  String
-  college    College  @relation(fields: [collegeId], references: [id])
-  teams      Team[]
+  secretCode String
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+  teams     Team[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([name, collegeId])
 }
 
 model Event {
-  id               String        @id @default(uuid())
-  name             String
-  description      String
-  category         EventCategory
-  
-  // ✅ REQ: Different team sizes per event
-  minPlayers       Int           @default(1)
-  maxPlayers       Int           @default(1)
+  id          String        @id @default(uuid())
+  name        String
+  description String
+  category    EventCategory
 
-  allowOutside     Boolean       @default(false) 
-  
-  invites          EventInvite[] 
-  teams            Team[]
+  // ✅ REQ: Different team sizes per event
+  minPlayers Int @default(1)
+  maxPlayers Int @default(1)
+
+  allowOutside Boolean @default(false)
+
+  eventPrice String @default("0")
+
+  invites EventInvite[]
+  teams   Team[]
 
   registrationRequests RegistrationRequest[]
-  
-  // ✅ Judging Setup
-  judges           JudgeAssignment[]
-  criteria         String[]      @default(["General"]) // e.g. ["Creativity", "Technicality"]
 
-  registrationOpen Boolean       @default(true)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  // ✅ Judging Setup
+  judges   JudgeAssignment[]
+  criteria String[]          @default(["General"]) // e.g. ["Creativity", "Technicality"]
+
+  registrationOpen Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 // --- REGISTRATION & CODES ---
 
 model EventInvite {
-  id        String   @id @default(uuid())
-  code      String   @unique  // e.g., "EXT-5521"
-  
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id])
+  id   String @id @default(uuid())
+  code String @unique // e.g., "EXT-5521"
 
-  isUsed    Boolean  @default(false)
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id])
+
+  isUsed Boolean @default(false)
 
   // Track the team that "consumed" this code
   usedByTeamId String? @unique
   usedByTeam   Team?   @relation(fields: [usedByTeamId], references: [id])
 }
 
-
-
 model Team {
-  id           String   @id @default(uuid())
-  teamName     String
-  eventId      String
-  event        Event    @relation(fields: [eventId], references: [id])
-  
-  collegeId    String
-  college      College  @relation(fields: [collegeId], references: [id])
-  
+  id       String @id @default(uuid())
+  teamName String
+  eventId  String
+  event    Event  @relation(fields: [eventId], references: [id])
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+
   // Internal teams link to Dept
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
 
   // External (or limited internal) teams link to Invite Code
-  inviteId     String?     @unique
-  invite       EventInvite?
+  inviteId String?      @unique
+  invite   EventInvite?
 
   // ✅ REQ: Payment Logic (Cloudinary)
   paymentStatus PaymentStatus @default(PENDING)
-  paymentImage  String?    // URL from Cloudinary
+  paymentImage  String? // URL from Cloudinary
   transactionId String?
 
-  // ✅ REQ: QR Entry for Outside Students
-  ticketCode    String?    @unique // Only generated for external teams
-  entryLogs     EntryLog[]
+  // Razorpay Specific Fields
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String? @unique
+  razorpaySignature String?
 
-  members      Member[]
-  scores       Score[]
-  
-  createdAt    DateTime @default(now())
+  // ✅ REQ: QR Entry for Outside Students
+  ticketCode String?    @unique // Only generated for external teams
+  entryLogs  EntryLog[]
+
+  members Member[]
+  scores  Score[]
+
+  createdAt DateTime @default(now())
 
   // Prevents a department from registering multiple times for the same event
-  @@unique([eventId, departmentId]) 
+  @@unique([eventId, departmentId])
+  @@unique([eventId, collegeId])
 }
 
 model Member {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   name       String
   enrollment String?
   phone      String
-  isLeader   Boolean  @default(false)
-  
-  teamId     String
-  team       Team     @relation(fields: [teamId], references: [id])
+  isLeader   Boolean @default(false)
+
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id])
 }
 
 // --- JUDGING & ENTRY TRACKING ---
 
 model Judge {
-  id          String   @id @default(uuid())
-  name        String
-  email       String   @unique
-  password    String
-  
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+
   assignments JudgeAssignment[]
   scores      Score[]
 }
@@ -152,21 +157,21 @@ model JudgeAssignment {
   id      String @id @default(uuid())
   judgeId String
   eventId String
-  
-  judge   Judge @relation(fields: [judgeId], references: [id])
-  event   Event @relation(fields: [eventId], references: [id])
+
+  judge Judge @relation(fields: [judgeId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 
   @@unique([judgeId, eventId])
 }
 
 model Score {
-  id        String   @id @default(uuid())
-  teamId    String
-  team      Team     @relation(fields: [teamId], references: [id])
-  judgeId   String
-  judge     Judge    @relation(fields: [judgeId], references: [id])
-  
-  criteriaScores Json    // Stores points like { "Creativity": 9, "Logic": 10 }
+  id      String @id @default(uuid())
+  teamId  String
+  team    Team   @relation(fields: [teamId], references: [id])
+  judgeId String
+  judge   Judge  @relation(fields: [judgeId], references: [id])
+
+  criteriaScores Json // Stores points like { "Creativity": 9, "Logic": 10 }
   totalPoints    Float
   comments       String?
 
@@ -178,28 +183,25 @@ model EntryLog {
   teamId    String
   team      Team     @relation(fields: [teamId], references: [id])
   scannedAt DateTime @default(now())
-  scannerId String   // ID of the volunteer/admin scanning
-  dayNumber Int      // 1 to 7
-  type      LogType  // ENTRY or EXIT
+  scannerId String // ID of the volunteer/admin scanning
+  dayNumber Int // 1 to 7
+  type      LogType // ENTRY or EXIT
 
-  @@index([teamId, scannedAt(sort: Desc)]) 
+  @@index([teamId, scannedAt(sort: Desc)])
 }
 
-
 model RegistrationRequest {
-  id          String   @id @default(uuid())
-  name        String   // Contact person name
+  id          String @id @default(uuid())
+  name        String // Contact person name
   collegeName String
   phone       String
   email       String
   eventId     String
-  event       Event    @relation(fields: [eventId], references: [id])
+  event       Event  @relation(fields: [eventId], references: [id])
 
-  
-  status      String   @default("PENDING") // PENDING, CONTACTED, CODE_SENT
-  createdAt   DateTime @default(now())
+  status    String   @default("PENDING") // PENDING, CONTACTED, CODE_SENT
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 }
 
 model Admin {
@@ -209,7 +211,6 @@ model Admin {
   password String
 }
 
-
 enum PaymentStatus {
   PENDING
   APPROVED
@@ -217,7 +218,6 @@ enum PaymentStatus {
 }
 
 // --- ENUMS ---
-
 
 enum LogType {
   ENTRY
@@ -230,7 +230,6 @@ enum EventCategory {
   PRAGATI
 }
 
-
 enum InquiryStatus {
   PENDING
   CALLED
@@ -239,4 +238,3 @@ enum InquiryStatus {
   REJECTED
   CLOSED
 }
-
