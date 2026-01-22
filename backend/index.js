@@ -21,7 +21,8 @@ const httpServer = createServer(app); // Wrap express app
 // 1. Configure CORS & Socket.io
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://panache.vercel.app"
+  "https://panache.vercel.app",
+  "https://panache-16.vercel.app"
 ];
 
 const io = new Server(httpServer, {
