@@ -166,6 +166,10 @@ const RegisterForm = () => {
             };
 
             const rzp = new window.Razorpay(options);
+             rzp.on('payment.failed', function (response){
+                toast.error("Transaction Failed: " + response.error.description);
+                setLoading(false);
+            });
             rzp.open();
         } catch (err) {
             setLoading(false);
@@ -186,6 +190,7 @@ const RegisterForm = () => {
 
                 // 2. Transition the step
                 setStep("SUCCESS");
+                setLoading(false);
 
                 return `Registration Successful!`;
             },

@@ -166,29 +166,52 @@ export const submitRegistration = async (req, res) => {
 
 
 export const preVerifyRegistration = async (req, res) => {
-    const { eventId, collegeId, departmentId, isVgu } = req.body;
+    const { eventId, collegeId, departmentId, isVgu, secretCode } = req.body;
 
     try {
+        // 1. Check for Duplicate Registration First
         if (isVgu) {
-            // Check if this specific VGU Department has already registered
             const existingDeptTeam = await prisma.team.findFirst({
                 where: { eventId, departmentId }
             });
             if (existingDeptTeam) {
                 return res.status(400).json({ error: "Your department has already registered for this event." });
             }
+
+            // --- VGU SECRET CODE VALIDATION ---
+            const dept = await prisma.department.findUnique({
+                where: { id: departmentId }
+            });
+
+            if (!dept || dept.secretCode !== secretCode) {
+                return res.status(400).json({ error: "Invalid Department Secret Code." });
+            }
+
         } else {
-            // Check if this Outside College has already registered
             const existingCollegeTeam = await prisma.team.findFirst({
                 where: { eventId, collegeId }
             });
             if (existingCollegeTeam) {
                 return res.status(400).json({ error: "A team from your college is already registered." });
             }
+
+            // --- EXTERNAL INVITE CODE VALIDATION ---
+            const invite = await prisma.eventInvite.findUnique({
+                where: { code: secretCode }
+            });
+
+            if (!invite || invite.eventId !== eventId) {
+                return res.status(400).json({ error: "Invalid or expired event code." });
+            }
+
+            if (invite.isUsed) {
+                return res.status(400).json({ error: "This code has already been used by another team." });
+            }
         }
 
         return res.status(200).json({ message: "Eligible to register." });
     } catch (error) {
+        console.error(error);
         return res.status(500).json({ error: "Server error during verification." });
     }
 };
