@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
     Loader2, Lock, ArrowRight, MessageSquare, ArrowLeft, Plus, ShieldCheck
@@ -185,11 +186,12 @@ const RegisterForm = () => {
         toast.promise(registrationPromise, {
             loading: 'Verifying data and securing your slot...',
             success: (res) => {
-                // 1. Set the data first
-                setRegistrationSuccessData(res.data);
-
-                // 2. Transition the step
-                setStep("SUCCESS");
+                flushSync(() => {
+                    // 1. Set the data first
+                    setRegistrationSuccessData(res.data);
+                    // 2. Transition the step
+                    setStep("SUCCESS");
+                });
                 setLoading(false);
 
                 return `Registration Successful!`;
@@ -213,7 +215,7 @@ const RegisterForm = () => {
     console.log(registrationSuccessData);
 
     // Optimized render guard
-    if (step === 'SUCCESS' && registrationSuccessData?.ticket) {
+    if (step === 'SUCCESS' && registrationSuccessData?.ticketCode) {
         return (
             <SuccessScreen
                 data={registrationSuccessData}
