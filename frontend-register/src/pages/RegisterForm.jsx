@@ -65,6 +65,7 @@ const RegisterForm = () => {
             } catch (err) {
                 toast.error("Failed to load event data.");
                 navigate('/');
+                window.location.reload();
             } finally {
                 setLoading(false);
             }
