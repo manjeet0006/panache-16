@@ -36,11 +36,12 @@ export const createPaymentOrder = async (req, res) => {
 export const submitRegistration = async (req, res) => {
     try {
         const {
-            teamName, eventId, secretCode, collegeId,
+            teamName, eventId, collegeId,
             customCollegeName, departmentId,
             razorpay_order_id, razorpay_payment_id, razorpay_signature
         } = req.body;
 
+        const secretCode = req.body.secretCode?.trim().toUpperCase();
         const isVgu = req.body.isVgu === true || req.body.isVgu === 'true';
         let members = typeof req.body.members === 'string' ? JSON.parse(req.body.members) : req.body.members;
 
@@ -51,6 +52,8 @@ export const submitRegistration = async (req, res) => {
         if (isVgu && secretCode.toUpperCase().startsWith('EXT-')) {
             return res.status(403).json({ error: "Security Alert: VGU students cannot use External Invite Codes." });
         }
+
+
 
         // --- 1. PAYMENT SECURITY ---
         if (!isVgu) {
@@ -63,6 +66,7 @@ export const submitRegistration = async (req, res) => {
         }
 
         // --- 2. CODE VERIFICATION ---
+        // --- 2. CODE VERIFICATION ---
         let finalInviteId = null;
         if (event.allowOutside || !isVgu) {
             const invite = await prisma.eventInvite.findFirst({
@@ -72,14 +76,31 @@ export const submitRegistration = async (req, res) => {
             finalInviteId = invite.id;
         } else {
             const department = await prisma.department.findUnique({ where: { id: departmentId } });
-            if (!department || department.secretCode !== secretCode) {
-                return res.status(400).json({ error: "Invalid Department Secret Code." });
+
+            // ✅ FIX: Normalize both strings to Uppercase before comparing
+            const dbCode = department?.secretCode?.trim().toUpperCase();
+            const inputCode = secretCode?.trim().toUpperCase();
+
+            if (!department || dbCode !== inputCode) {
+                return res.status(400).json({
+                    error: "Invalid Department Secret Code.",
+                    // Debugging hint (remove in production)
+                    debug: `Input: ${inputCode}, Expected: ${dbCode}`
+                });
             }
         }
 
         // --- 3. ATOMIC TRANSACTION ---
         const result = await prisma.$transaction(async (tx) => {
             let actualCollegeId = collegeId;
+
+            if (isVgu) {
+                const dup = await tx.team.findFirst({ where: { eventId, departmentId } });
+                if (dup) throw new Error("DEPT_EXISTS");
+            } else {
+                const dup = await tx.team.findFirst({ where: { eventId, collegeId } });
+                if (dup) throw new Error("COLLEGE_EXISTS");
+            }
 
             // 1. College Resolution
             if (!isVgu && collegeId === 'other') {
@@ -157,6 +178,7 @@ export const submitRegistration = async (req, res) => {
 
             return team;
         }, { timeout: 20000 });
+
         // Update Cache
         if (result.ticketCode) {
             ticketCache.set(result.ticketCode, {
@@ -183,63 +205,83 @@ export const preVerifyRegistration = async (req, res) => {
     const { eventId, collegeId, departmentId, isVgu, secretCode } = req.body;
 
     try {
+        const normalizedInput = secretCode?.trim().toUpperCase();
 
-        const event = await prisma.event.findUnique({ where: { id: eventId } });
-        // 1. Check for Duplicate Registration First
+        // 1. Parallel Lookups via Transaction
+        const [
+            event,
+            existingVguTeam,
+            existingCollegeTeam,
+            existingDeptTeam,
+            invite,
+            department
+        ] = await prisma.$transaction([
+            prisma.event.findUnique({ where: { id: eventId } }),
+
+            // Check if any VGU team exists for this event
+            prisma.team.findFirst({
+                where: { eventId, college: { isInternal: true } }
+            }),
+
+            // Check if this specific outside college is already registered
+            prisma.team.findFirst({
+                where: { eventId, collegeId }
+            }),
+
+            // Check if this specific department is already registered
+            prisma.team.findFirst({
+                where: { eventId, departmentId }
+            }),
+
+            // Check for a specific Invite Code (External/Global)
+            prisma.eventInvite.findUnique({
+                where: { code: normalizedInput }
+            }),
+
+            // Fetch the department details (Internal)
+            prisma.department.findUnique({
+                where: { id: departmentId }
+            })
+        ]);
+
+        // 2. Validation Logic
+        if (!event) return res.status(404).json({ error: "Event not found" });
+
         if (isVgu) {
-            const event = await prisma.event.findUnique({ where: { id: eventId } });
-
-            if (isVgu) {
-                // Check if this is an "Outside Allowed" event
-                if (event.allowOutside) {
-                    // RULE: For these events, VGU needs an invite code and only 1 VGU team allowed
-                    const existingVguTeam = await prisma.team.findFirst({
-                        where: { eventId, college: { isInternal: true } }
-                    });
-
-                    if (existingVguTeam) {
-                        return res.status(400).json({ error: "VGU representative team already registered for this open event." });
-                    }
-
-                    // Verify the invite code is valid and for this event
-                    const invite = await prisma.eventInvite.findUnique({ where: { code: secretCode } });
-                    if (!invite || invite.eventId !== eventId || invite.isUsed) {
-                        return res.status(400).json({ error: "Invalid or used Invite Code." });
-                    }
-                } else {
-                    // Standard Internal-only event logic
-                    const existingDeptTeam = await prisma.team.findFirst({ where: { eventId, departmentId } });
-                    if (existingDeptTeam) return res.status(400).json({ error: "Your department is already registered." });
-
-                    const dept = await prisma.department.findUnique({ where: { id: departmentId } });
-                    if (!dept || dept.secretCode !== secretCode) return res.status(400).json({ error: "Invalid Dept Code." });
+            // Case A: VGU participating in a GLOBAL event (Needs Invite Code)
+            if (event.allowOutside) {
+                if (existingVguTeam) {
+                    return res.status(400).json({ error: "A VGU team is already registered for this global event." });
+                }
+                if (!invite || invite.eventId !== eventId || invite.isUsed) {
+                    return res.status(400).json({ error: "Invalid or already used Invite Code." });
+                }
+            }
+            // Case B: VGU participating in an INTERNAL event (Needs Dept Secret Code)
+            else {
+                if (existingDeptTeam) {
+                    return res.status(400).json({ error: "Your department is already registered." });
+                }
+                if (!department || department.secretCode.trim().toUpperCase() !== normalizedInput) {
+                    return res.status(400).json({ error: "Invalid Department Secret Code." });
                 }
             }
         } else {
-            const existingCollegeTeam = await prisma.team.findFirst({
-                where: { eventId, collegeId }
-            });
+            // Case C: OUTSIDE College (Only one team per college per event)
             if (existingCollegeTeam) {
-                return res.status(400).json({ error: "A team from your college is already registered." });
+                return res.status(400).json({ error: "This college is already represented in this event." });
             }
-
-            // --- EXTERNAL INVITE CODE VALIDATION ---
-            const invite = await prisma.eventInvite.findUnique({
-                where: { code: secretCode }
-            });
-
-            if (!invite || invite.eventId !== eventId) {
-                return res.status(400).json({ error: "Invalid or expired event code." });
-            }
-
-            if (invite.isUsed) {
-                return res.status(400).json({ error: "This code has already been used by another team." });
+            if (!invite || invite.eventId !== eventId || invite.isUsed) {
+                return res.status(400).json({ error: "Invalid or already used Invite Code." });
             }
         }
 
         return res.status(200).json({ message: "Eligible to register." });
-    } catch (error) {
-        console.error(error);
+
+    } catch (err) {
+        console.error("Critical Verification Error:", err);
         return res.status(500).json({ error: "Server error during verification." });
     }
 };
+
+

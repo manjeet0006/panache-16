@@ -4,6 +4,7 @@ import { createPaymentOrder, preVerifyRegistration, submitRegistration } from ".
 import { submitInquiry } from "../controllers/inquiryController.js";
 import { registrationLimiter } from "../middleware/rateLimiter.js";
 
+
 const router = express.Router();
 
 router.get("/event/:id", getEventById);
@@ -20,5 +21,7 @@ router.post("/inquiry", submitInquiry);
 router.post('/create-order', createPaymentOrder);
 
 router.post('/pre-verify' , preVerifyRegistration )
+
+
 
 export default router;

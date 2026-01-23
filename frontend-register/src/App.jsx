@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { Toaster, toast } from 'sonner';
+import { useAuth } from './context/AuthContext';
 
 // Pages
 import Home from './pages/Home';
@@ -10,6 +11,8 @@ import RegisterForm from './pages/RegisterForm';
 import ScannerPage from './pages/ScannerPage';
 import Footer from './components/Footer';
 import Header from './components/Header';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
 
 
 // Initialize Socket outside component
@@ -17,6 +20,16 @@ import Header from './components/Header';
 // App.jsx or Socket config file
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+
+
+const ProtectedRoute = ({ children }) => {
+  const { token, loading } = useAuth();
+
+  if (loading) return null; // Wait for context to load
+  if (!token) return <Navigate to="/login" replace />;
+
+  return children;
+};
 
 
 const socket = io(SOCKET_URL, {
@@ -56,10 +69,25 @@ function App() {
         <main className="pt-20">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/events" element={<EventsExplorer />} />
             <Route path="/register/:eventId" element={<RegisterForm />} />
             {/* Pass the global socket instance to the scanner */}
             <Route path='/scan' element={<ScannerPage socket={socket} />} />
+
+
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+
+
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
 

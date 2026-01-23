@@ -6,17 +6,20 @@ import dotenv from 'dotenv';
 import { prisma } from './db.js'; 
 
 
+import userRoutes from './routes/userRoutes.js'
 import adminRoutes from './routes/adminRoutes.js';
 import registrationRoutes from './routes/registrationRoutes.js';
 import judgingRoutes from './routes/judgingRoutes.js';
 import scanningRoutes from './routes/scanningRoutes.js';
 import metaRoutes from './routes/meta.js';
 import { errorHandler } from './middleware/errorHandler.js';
-
+// import userRoutes from './routes/userRoutes'
 dotenv.config();
 
 const app = express();
 const httpServer = createServer(app); // Wrap express app
+
+app.set('trust proxy', 1);
 
 // 1. Configure CORS & Socket.io
 const allowedOrigins = [
@@ -164,6 +167,12 @@ app.use('/api/judge', judgingRoutes);
 app.use('/api/scan', scanningRoutes); // Keep for history/manual lookups
 app.use('/api/admin', adminRoutes);
 app.use('/api/meta', metaRoutes);
+
+app.use('/api/user', userRoutes);
+
+// app.use('/api/user' , userRoutes ); // user routes for login and other features
+
+
 
 app.use(errorHandler);
 

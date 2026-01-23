@@ -127,7 +127,6 @@ model Team {
 
   // Prevents a department from registering multiple times for the same event
   @@unique([eventId, departmentId])
-  @@unique([eventId, collegeId])
 }
 
 model Member {
