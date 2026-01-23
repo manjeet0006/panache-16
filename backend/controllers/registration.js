@@ -81,16 +81,11 @@ export const submitRegistration = async (req, res) => {
         const result = await prisma.$transaction(async (tx) => {
             let actualCollegeId = collegeId;
 
-            // DYNAMIC COLLEGE CREATION: Handle "Other" selection
+            // 1. College Resolution
             if (!isVgu && collegeId === 'other') {
                 if (!customCollegeName) throw new Error("Custom college name is required.");
-
                 const newCollege = await tx.college.create({
-                    data: {
-                        name: customCollegeName,
-                        city: "External", // Or capture city from frontend
-                        isInternal: false
-                    }
+                    data: { name: customCollegeName, city: "External", isInternal: false }
                 });
                 actualCollegeId = newCollege.id;
             } else if (isVgu) {
@@ -99,28 +94,48 @@ export const submitRegistration = async (req, res) => {
                 actualCollegeId = internalCol.id;
             }
 
-            // Duplicate Check for VGU in Grand Finale
-            if (isVgu && eventId === 'panache-main-2026') {
-                const existingVgu = await tx.team.findFirst({
-                    where: { eventId, college: { isInternal: true } }
+            // 2. VGU Restriction for Open Events
+            // If event allows outsiders, we only allow ONE VGU team to represent the college.
+            if (isVgu && event.allowOutside) {
+                const existingVguTeam = await tx.team.findFirst({
+                    where: {
+                        eventId: event.id,
+                        college: { isInternal: true }
+                    }
                 });
-                if (existingVgu) throw new Error("VGU_ALREADY_REGISTERED");
+                if (existingVguTeam) {
+                    throw new Error("VGU_LIMIT_REACHED: Only one VGU representative team allowed for this open event.");
+                }
             }
+
+            // 3. Invite Code Handling
+            // VGU students must "consume" an invite code ONLY if the event allows outsiders.
+            // Otherwise, they just use their Dept Secret Code (which doesn't burn an invite).
+            let inviteToUseId = finalInviteId;
 
             // Create Team
             const team = await tx.team.create({
                 data: {
                     teamName,
                     paymentStatus: "APPROVED",
-                    transactionId: isVgu ? `VGU_EXEMPT_${Date.now()}` : razorpay_payment_id,
-                    ticketCode: isVgu ? null : `PAN-${uuidv4().slice(0, 6).toUpperCase()}`,
+                    transactionId: isVgu ? `VGU_INTERNAL_${Date.now()}` : razorpay_payment_id,
+
+                    // ✅ CHANGE: Everyone gets a ticket if it's an open event or outside team
+                    // This allows your scanner app to scan VGU teams too.
+                    ticketCode: (!isVgu || event.allowOutside)
+                        ? `PAN-${uuidv4().slice(0, 6).toUpperCase()}`
+                        : null,
+
                     event: { connect: { id: eventId } },
                     college: { connect: { id: actualCollegeId } },
-                    razorpayOrderId: razorpay_order_id,
-                    razorpayPaymentId: razorpay_payment_id,
-                    razorpaySignature: razorpay_signature,
+
+                    razorpayOrderId: isVgu ? null : razorpay_order_id,
+                    razorpayPaymentId: isVgu ? null : razorpay_payment_id,
+                    razorpaySignature: isVgu ? null : razorpay_signature,
+
                     ...(isVgu && departmentId && { department: { connect: { id: departmentId } } }),
-                    ...(finalInviteId && { invite: { connect: { id: finalInviteId } } }),
+                    ...(inviteToUseId && { invite: { connect: { id: inviteToUseId } } }),
+
                     members: {
                         create: members.map((m) => ({
                             name: m.name,
@@ -132,17 +147,16 @@ export const submitRegistration = async (req, res) => {
                 }
             });
 
-            // Mark Invite Code as used
-            if (finalInviteId) {
+            // 4. Mark Invite Code as used
+            if (inviteToUseId) {
                 await tx.eventInvite.update({
-                    where: { id: finalInviteId },
+                    where: { id: inviteToUseId },
                     data: { isUsed: true, usedByTeamId: team.id }
                 });
             }
 
             return team;
         }, { timeout: 20000 });
-
         // Update Cache
         if (result.ticketCode) {
             ticketCache.set(result.ticketCode, {
@@ -169,24 +183,38 @@ export const preVerifyRegistration = async (req, res) => {
     const { eventId, collegeId, departmentId, isVgu, secretCode } = req.body;
 
     try {
+
+        const event = await prisma.event.findUnique({ where: { id: eventId } });
         // 1. Check for Duplicate Registration First
         if (isVgu) {
-            const existingDeptTeam = await prisma.team.findFirst({
-                where: { eventId, departmentId }
-            });
-            if (existingDeptTeam) {
-                return res.status(400).json({ error: "Your department has already registered for this event." });
+            const event = await prisma.event.findUnique({ where: { id: eventId } });
+
+            if (isVgu) {
+                // Check if this is an "Outside Allowed" event
+                if (event.allowOutside) {
+                    // RULE: For these events, VGU needs an invite code and only 1 VGU team allowed
+                    const existingVguTeam = await prisma.team.findFirst({
+                        where: { eventId, college: { isInternal: true } }
+                    });
+
+                    if (existingVguTeam) {
+                        return res.status(400).json({ error: "VGU representative team already registered for this open event." });
+                    }
+
+                    // Verify the invite code is valid and for this event
+                    const invite = await prisma.eventInvite.findUnique({ where: { code: secretCode } });
+                    if (!invite || invite.eventId !== eventId || invite.isUsed) {
+                        return res.status(400).json({ error: "Invalid or used Invite Code." });
+                    }
+                } else {
+                    // Standard Internal-only event logic
+                    const existingDeptTeam = await prisma.team.findFirst({ where: { eventId, departmentId } });
+                    if (existingDeptTeam) return res.status(400).json({ error: "Your department is already registered." });
+
+                    const dept = await prisma.department.findUnique({ where: { id: departmentId } });
+                    if (!dept || dept.secretCode !== secretCode) return res.status(400).json({ error: "Invalid Dept Code." });
+                }
             }
-
-            // --- VGU SECRET CODE VALIDATION ---
-            const dept = await prisma.department.findUnique({
-                where: { id: departmentId }
-            });
-
-            if (!dept || dept.secretCode !== secretCode) {
-                return res.status(400).json({ error: "Invalid Department Secret Code." });
-            }
-
         } else {
             const existingCollegeTeam = await prisma.team.findFirst({
                 where: { eventId, collegeId }
