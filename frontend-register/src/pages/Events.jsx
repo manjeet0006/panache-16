@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { 
-    Users, ShieldAlert, Rocket, Calendar, 
-    ChevronDown, ChevronUp, BookOpen, MapPin, Star,
-    Search, Zap, Sparkles
+import {
+  Users, ShieldAlert, Rocket, Calendar,
+  ChevronDown, ChevronUp, BookOpen, MapPin, Star,
+  Search, Zap, Sparkles,
+  IndianRupee
 } from 'lucide-react';
 import API from '../api';
 
@@ -32,8 +33,8 @@ const EventsExplorer = () => {
     fetchEvents();
   }, [isVgu]);
 
-  const filteredEvents = events.filter(e => 
-    e.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredEvents = events.filter(e =>
+    e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     e.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -48,8 +49,8 @@ const EventsExplorer = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white pt-24 pb-32 px-6 relative selection:bg-pink-500/30">
-      
+    <div className="min-h-screen bg-[#050505] text-white  pb-32 px-6 relative selection:bg-pink-500/30">
+
       {/* Background Atmosphere */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-pink-600/10 blur-[120px] rounded-full"></div>
@@ -57,14 +58,14 @@ const EventsExplorer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        
+
         {/* Header Section */}
         <header className="mb-20 pt-16 text-center">
           <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/[0.03] border border-white/10 mb-8 backdrop-blur-xl group cursor-default">
             <Sparkles size={14} className="text-pink-500 group-hover:rotate-12 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Panache Era 2026 Lineup</span>
           </div>
-          
+
           <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter italic leading-none mb-6">
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500">Event</span>
             <br />
@@ -73,8 +74,8 @@ const EventsExplorer = () => {
 
           <div className="relative max-w-xl mx-auto mt-12 group">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-pink-500 transition-colors" size={20} />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search by name or category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -92,23 +93,23 @@ const EventsExplorer = () => {
             </div>
           ) : (
             filteredEvents.map(event => (
-              <div 
-                key={event.id} 
+              <div
+                key={event.id}
                 className="group relative bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.04] hover:border-pink-500/20 shadow-2xl overflow-hidden"
               >
                 {/* Visual Accent */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
+
                 <div className="relative z-10">
                   <div className="flex justify-between items-start mb-8">
                     <div className="flex flex-col gap-2">
-                        <span className="w-fit bg-pink-500 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded shadow-lg shadow-pink-500/20 italic">
-                            {event.category}
-                        </span>
-                        <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                            <Calendar size={12} className="text-pink-500" />
-                            {event.dateLabel || "TBA"}
-                        </div>
+                      <span className="w-fit bg-pink-500 text-white text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded shadow-lg shadow-pink-500/20 italic">
+                        {event.category}
+                      </span>
+                      <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                        <Calendar size={12} className="text-pink-500" />
+                        {event.dateLabel || "TBA"}
+                      </div>
                     </div>
                     {!event.allowOutside && (
                       <div className="flex items-center gap-1.5 bg-red-500/10 px-3 py-1 rounded text-[8px] font-black text-red-500 border border-red-500/10">
@@ -126,44 +127,52 @@ const EventsExplorer = () => {
 
                   {/* Expandable Guidelines */}
                   <div className="mb-8">
-                    <button 
-                        onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
-                        className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-pink-500/60 hover:text-pink-500 transition-all"
+                    <button
+                      onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
+                      className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-pink-500/60 hover:text-pink-500 transition-all"
                     >
-                        {expandedEvent === event.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        {expandedEvent === event.id ? "Close Rules" : "Read Rulebook"}
+                      {expandedEvent === event.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      {expandedEvent === event.id ? "Close Rules" : "Read Rulebook"}
                     </button>
-                    
+
                     {expandedEvent === event.id && (
-                        <div className="mt-4 p-5 bg-black/40 rounded-2xl border border-white/5 animate-in slide-in-from-top duration-300">
-                            <div className="space-y-3">
-                                {event.guidelines?.map((rule, idx) => (
-                                    <div key={idx} className="flex gap-3">
-                                        <div className="w-1 h-1 rounded-full bg-pink-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(236,72,153,1)]"></div>
-                                        <p className="text-[10px] text-gray-400 font-medium leading-normal italic">{rule}</p>
-                                    </div>
-                                ))}
+                      <div className="mt-4 p-5 bg-black/40 rounded-2xl border border-white/5 animate-in slide-in-from-top duration-300">
+                        <div className="space-y-3">
+                          {event.guidelines?.map((rule, idx) => (
+                            <div key={idx} className="flex gap-3">
+                              <div className="w-1 h-1 rounded-full bg-pink-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(236,72,153,1)]"></div>
+                              <p className="text-[10px] text-gray-400 font-medium leading-normal italic">{rule}</p>
                             </div>
+                          ))}
                         </div>
+                      </div>
                     )}
                   </div>
                 </div>
 
                 <div className="relative z-10 pt-6 border-t border-white/5 flex flex-col gap-6">
                   <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-gray-400">
                       <Users size={14} className="text-pink-500/50" />
-                      <span className="text-[9px] font-black uppercase tracking-widest">{event.minPlayers}-{event.maxPlayers} Players</span>
+                      <span className="text-[11px] font-black uppercase tracking-widest">{event.minPlayers}-{event.maxPlayers} Players</span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-gray-400">
                       <MapPin size={14} className="text-pink-500/50" />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Jaipur</span>
+                      <span className="text-[11px] font-black uppercase tracking-widest">Jaipur</span>
                     </div>
+                    {event.eventPrice >= 1 && !isVgu && (
+                      <div className="flex items-center gap-1 pl-5 text-gray-400">
+                        <IndianRupee size={14} className="text-pink-500/50" />
+                        <span className="text-[15px] font-black uppercase tracking-widest">
+                          {event.eventPrice}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => navigate(`/register/${event.id}?isVgu=${isVgu}`)}
-                    className="w-full bg-white text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] transition-all hover:bg-pink-500 hover:text-white shadow-xl active:scale-[0.98] group-hover:shadow-pink-500/10"
+                    className="w-full bg-white text-black py-4 rounded-xl font-extrabold uppercase text-[12px] tracking-[0.2em] transition-all hover:bg-pink-500 hover:text-white shadow-xl active:scale-[0.98] group-hover:shadow-pink-500/10"
                   >
                     Start Registration
                   </button>

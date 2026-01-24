@@ -13,6 +13,8 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import TermsAndConditions from './pages/terms_and_conditions';
+
 
 
 
@@ -56,9 +58,6 @@ function App() {
 
   return (
     <Router>
-
-
-
       <div className="min-h-screen bg-[#050505] font-sans text-white selection:bg-pink-500/30">
 
         {/* Offline Alert Banner */}
@@ -70,7 +69,7 @@ function App() {
 
         <Header />
 
-        <main className="">
+        <main className="pt-20">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -78,6 +77,7 @@ function App() {
             <Route path="/register/:eventId" element={<RegisterForm />} />
             {/* Pass the global socket instance to the scanner */}
             <Route path='/scan' element={<ScannerPage socket={socket} />} />
+            <Route path='/terms-and-conditions' element={<TermsAndConditions/>}/>
 
 
             <Route
@@ -88,9 +88,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-
-
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

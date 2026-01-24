@@ -1,11 +1,11 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  motion, useScroll, useTransform, useSpring, 
-  AnimatePresence 
+import {
+  motion, useScroll, useTransform, useSpring,
+  AnimatePresence
 } from "framer-motion";
-import { 
-  ArrowRight, Globe, School, X, Zap, Trophy, Music, 
+import {
+  ArrowRight, Globe, School, X, Zap, Trophy, Music,
   Camera, Sparkles, Clock, MapPin, ChevronDown, ArrowUpRight
 } from "lucide-react";
 
@@ -23,29 +23,29 @@ const Home = () => {
 
   return (
     <div ref={containerRef} className="relative bg-[#030303] text-white selection:bg-pink-500 overflow-x-hidden">
-      
+
       {/* --- 1. GLOBAL BACKGROUND ELEMENTS --- */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[150px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[150px]" />
-        <motion.div 
+        <motion.div
           style={{ x: bgTextX }}
           className="absolute top-1/2 left-0 -translate-y-1/2 text-[25vw] font-black text-white/[0.02] whitespace-nowrap uppercase italic"
         >
-          Panache Era 2026 Cultural Fest
+          Panache S16 Cultural Fest
         </motion.div>
       </div>
 
       {/* --- 2. CINEMATIC HERO SECTION --- */}
-      <motion.section 
+      <motion.section
         style={{ opacity: heroOpacity, scale: heroScale }}
         className="relative min-h-screen flex flex-col items-center justify-center text-center z-10 pt-20"
       >
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
           className="px-5 py-2 mb-8 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl"
         >
-          <span className="text-pink-400 text-[10px] font-bold uppercase tracking-[0.4em]">The Biggest Cultural Fest</span>
+          <span className="text-pink-400 text-[10px] font-bold uppercase tracking-[0.4em]">#The Biggest Cultural Fest</span>
         </motion.div>
 
         <h1 className="text-[14vw] md:text-[11vw] font-[1000] leading-[0.8] tracking-tighter uppercase italic">
@@ -56,12 +56,12 @@ const Home = () => {
         </h1>
 
         <p className="mt-10 max-w-xl text-gray-400 text-lg md:text-xl font-medium leading-relaxed px-6">
-          Step into a world of vibrant culture, fierce competition, and 
+          Step into a world of vibrant culture, fierce competition, and
           unforgettable memories. Your stage is waiting.
         </p>
 
         {/* --- ADDED BUTTONS --- */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -86,7 +86,7 @@ const Home = () => {
           </motion.button>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }}
           className="absolute bottom-10 text-gray-600 flex flex-col items-center gap-2"
         >
@@ -97,95 +97,95 @@ const Home = () => {
 
       {/* --- 3. BENTO GRID --- */}
       {/* --- NEW EVENT CORE SECTION --- */}
-<section className="relative z-20 py-40 px-6 max-w-7xl mx-auto">
-  <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-    <div>
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        className="flex items-center gap-2 mb-4"
-      >
-        <span className="w-8 h-[1px] bg-pink-500"></span>
-        <span className="text-pink-500 text-[10px] font-black uppercase tracking-[0.4em]">Explore the Vibe</span>
-      </motion.div>
-      <h2 className="text-6xl md:text-9xl font-[1000] uppercase italic tracking-tighter leading-none">
-        THE <span className="text-pink-600">CORE</span> <br />
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white/50 to-white/5">SPECTRUM</span>
-      </h2>
-    </div>
-    <p className="max-w-xs text-gray-500 text-sm font-medium leading-relaxed border-l border-white/10 pl-6">
-      From high-octane stage battles to futuristic tech expos, experience the diverse energy of the Panache Era.
-    </p>
-  </div>
+      <section className="relative z-20 py-40 px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-2 mb-4"
+            >
+              <span className="w-8 h-[1px] bg-pink-500"></span>
+              <span className="text-pink-500 text-[10px] font-black uppercase tracking-[0.4em]">Explore the Vibe</span>
+            </motion.div>
+            <h2 className="text-6xl md:text-9xl font-[1000] uppercase italic tracking-tighter leading-none">
+              THE <span className="text-pink-600">CORE</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white/50 to-white/5">SPECTRUM</span>
+            </h2>
+          </div>
+          <p className="max-w-xs text-gray-500 text-sm font-medium leading-relaxed border-l border-white/10 pl-6">
+            From high-octane stage battles to futuristic tech expos, experience the diverse energy of the Panache Era.
+          </p>
+        </div>
 
-  {/* --- THE HYPER BENTO GRID --- */}
-  <div className="grid grid-cols-1 md:grid-cols-6 gap-6 auto-rows-[300px]">
-    
-    {/* 01. Star Night - The Feature Card */}
-    <BentoCard 
-      col="md:col-span-4" row="md:row-span-2"
-      title="Star Night"
-      category="Main Stage"
-      desc="Headline performances by global icons in the main arena under the stars."
-      img="https://images.unsplash.com/photo-1459749411177-042180ceea73?auto=format&fit=crop&q=80&w=1200"
-      icon={<Music className="text-pink-500" size={32} />}
-      accent="bg-pink-600"
-    />
+        {/* --- THE HYPER BENTO GRID --- */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-6 auto-rows-[300px]">
 
-    {/* 02. Workshops */}
-    <BentoCard 
-      col="md:col-span-2" row="md:row-span-1"
-      title="Workshops"
-      category="Learning"
-      desc="Masterclasses in design & media."
-      icon={<Zap className="text-yellow-400" size={24} />}
-      bg="bg-[#111]"
-    />
+          {/* 01. Star Night - The Feature Card */}
+          <BentoCard
+            col="md:col-span-4" row="md:row-span-2"
+            title="Star Night"
+            category="Main Stage"
+            desc="Headline performances by global icons in the main arena under the stars."
+            img="https://media.istockphoto.com/id/1806011581/es/foto/j%C3%B3venes-felices-y-alegres-bailando-saltando-y-cantando-durante-el-concierto-del-grupo-favorito.jpg?s=1024x1024&w=is&k=20&c=Y40epnfXDMcaqCy5ThmZJsiuioqeg98-XchxCeyaW_Q="
+            icon={<Music className="text-pink-500" size={32} />}
+            accent="bg-pink-600"
+          />
 
-    {/* 03. Competitions */}
-    <BentoCard 
-      col="md:col-span-2" row="md:row-span-2"
-      title="Competitions"
-      category="Battle"
-      desc="50+ events spanning 4 days of fierce cultural rivalry."
-      img="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&q=80&w=800"
-      icon={<Trophy className="text-indigo-400" size={32} />}
-      accent="bg-indigo-600"
-    />
+          {/* 02. Workshops */}
+          <BentoCard
+            col="md:col-span-2" row="md:row-span-1"
+            title="Workshops"
+            category="Learning"
+            desc="Masterclasses in design & media."
+            icon={<Zap className="text-yellow-400" size={24} />}
+            bg="bg-[#111]"
+          />
 
-    {/* 04. 24H Hackathon */}
-    <BentoCard 
-      col="md:col-span-2" row="md:row-span-1"
-      title="Hackathon"
-      category="Innovation"
-      desc="Code for a better future."
-      icon={<Sparkles className="text-purple-400" size={24} />}
-      bg="bg-[#0a0a0a] border border-white/5"
-    />
+          {/* 03. Competitions */}
+          <BentoCard
+            col="md:col-span-2" row="md:row-span-2"
+            title="Competitions"
+            category="Battle"
+            desc="50+ events spanning 4 days of fierce cultural rivalry."
+            img="https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?auto=format&fit=crop&q=80&w=800"
+            icon={<Trophy className="text-indigo-400" size={32} />}
+            accent="bg-indigo-600"
+          />
 
-    {/* 05. Vloggers Zone */}
-    <BentoCard 
-      col="md:col-span-2" row="md:row-span-1"
-      title="Vloggers"
-      category="Media"
-      desc="Connect with India's top creators."
-      icon={<Camera className="text-blue-400" size={24} />}
-      bg="bg-[#151515]"
-    />
-  </div>
-</section>
+          {/* 04. 24H Hackathon */}
+          <BentoCard
+            col="md:col-span-2" row="md:row-span-1"
+            title="Hackathon"
+            category="Innovation"
+            desc="Code for a better future."
+            icon={<Sparkles className="text-purple-400" size={24} />}
+            bg="bg-[#0a0a0a] border border-white/5"
+          />
+
+          {/* 05. Vloggers Zone */}
+          <BentoCard
+            col="md:col-span-2" row="md:row-span-1"
+            title="Vloggers"
+            category="Media"
+            desc="Connect with India's top creators."
+            icon={<Camera className="text-blue-400" size={24} />}
+            bg="bg-[#151515]"
+          />
+        </div>
+      </section>
 
       {/* --- 4. UPDATED POPUP (MODAL) --- */}
       <AnimatePresence>
         {showModal && (
           <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowModal(false)}
               className="absolute inset-0 bg-black/90 backdrop-blur-2xl"
             />
-            
-            <motion.div 
+
+            <motion.div
               initial={{ scale: 0.9, y: 40, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 40, opacity: 0 }}
@@ -193,7 +193,7 @@ const Home = () => {
             >
               <div className="absolute -top-24 -left-24 w-64 h-64 bg-pink-500/20 blur-[100px]" />
               <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 text-gray-500 hover:text-white transition"><X /></button>
-              
+
               <div className="mb-12 text-center">
                 <h2 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter">
                   Identify <span className="text-pink-500">Yourself</span>
@@ -202,17 +202,17 @@ const Home = () => {
               </div>
 
               <div className="flex flex-col gap-5">
-                <SelectionButton 
+                <SelectionButton
                   title="VGU Student"
                   sub="Internal Access"
-                  icon={<School size={32}/>}
+                  icon={<School size={32} />}
                   color="group-hover:text-pink-500"
                   onClick={() => navigate('/events?isVgu=true')}
                 />
-                <SelectionButton 
+                <SelectionButton
                   title="Outside Student"
                   sub="Open Registration"
-                  icon={<Globe size={32}/>}
+                  icon={<Globe size={32} />}
                   color="group-hover:text-indigo-500"
                   onClick={() => navigate('/events?isVgu=false')}
                 />
@@ -228,7 +228,7 @@ const Home = () => {
 // --- HELPERS ---
 const BentoCard = ({ col, row, bg, icon, title, desc, category, img, accent }) => {
   return (
-    <motion.div 
+    <motion.div
       whileHover={{ y: -10 }}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -238,10 +238,10 @@ const BentoCard = ({ col, row, bg, icon, title, desc, category, img, accent }) =
       {/* Background Image Reveal */}
       {img && (
         <div className="absolute inset-0 z-0">
-          <img 
-            src={img} 
-            alt={title} 
-            className="w-full h-full object-cover grayscale opacity-30 group-hover:opacity-60 group-hover:scale-110 group-hover:grayscale-0 transition-all duration-700" 
+          <img
+            src={img}
+            alt={title}
+            className="w-full h-full object-cover grayscale opacity-30 group-hover:opacity-60 group-hover:scale-110 group-hover:grayscale-0 transition-all duration-700"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         </div>
@@ -260,7 +260,7 @@ const BentoCard = ({ col, row, bg, icon, title, desc, category, img, accent }) =
             {category}
           </span>
         </div>
-        
+
         <h3 className="text-3xl font-black uppercase tracking-tighter italic mb-2 leading-none">
           {title}
         </h3>

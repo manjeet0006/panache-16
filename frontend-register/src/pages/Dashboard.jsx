@@ -90,7 +90,7 @@ const Dashboard = () => {
     // --- RENDER: DETAIL VIEW ---
     if (inspectingTeam) {
         return (
-            <div className="min-h-screen bg-[#050505] text-white pt-28 pb-20 px-6 animate-in slide-in-from-right duration-500">
+            <div className="min-h-screen bg-[#050505] text-white pt-12 pb-20 px-6 animate-in slide-in-from-right duration-500">
                 <div className="max-w-6xl mx-auto">
                     <button
                         onClick={() => setInspectingTeam(null)}
@@ -224,7 +224,7 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white pt-24 pb-20 px-6 relative overflow-hidden">
+        <div className="min-h-screen bg-[#050505] text-white pt-10  pb-20 px-6 relative overflow-hidden">
 
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-pink-500/10 to-transparent pointer-events-none blur-[150px]" />
 

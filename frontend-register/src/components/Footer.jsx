@@ -24,7 +24,7 @@ const Footer = () => {
           <nav className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-gray-500">
             <a href="#" className="hover:text-white transition-colors">Events</a>
             <span className="w-1 h-1 bg-white/10 rounded-full" />
-            <a href="#" className="hover:text-white transition-colors">Rules</a>
+            <a href="/terms-and-conditions" className="hover:text-white transition-colors">Rules</a>
             <span className="w-1 h-1 bg-white/10 rounded-full" />
             <a href="#" className="hover:text-white transition-colors">Team</a>
             <span className="w-1 h-1 bg-white/10 rounded-full" />

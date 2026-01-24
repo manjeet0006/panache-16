@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
-    Loader2, Lock, ArrowRight, MessageSquare, ArrowLeft, Plus, ShieldCheck
+    Loader2, Lock, ArrowRight, MessageSquare, ArrowLeft, Plus, ShieldCheck,
+    Check
 } from 'lucide-react';
 import { toast } from 'sonner';
 import API from '../api';
@@ -27,6 +28,8 @@ const RegisterForm = () => {
     const [colleges, setColleges] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [registrationSuccessData, setRegistrationSuccessData] = useState(null);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+
 
     const [inquiryData, setInquiryData] = useState({
         name: '', collegeName: '', phone: '', email: ''
@@ -244,7 +247,7 @@ const RegisterForm = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#050505] pt-32 pb-20 px-4 text-white">
+        <div className="min-h-screen bg-[#050505] pt-8 pb-20 px-4 text-white">
             <div className="max-w-2xl mx-auto">
 
                 {/* GATEWAY: Code Verification for Outsiders */}
@@ -287,7 +290,7 @@ const RegisterForm = () => {
                             {/* Inputs */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input className="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Team Name" onChange={e => setFormData({ ...formData, teamName: e.target.value })} required />
-                                <input className="w-full bg-pink-500/5 border border-pink-500/20 p-4 rounded-xl outline-none text-pink-500 font-bold uppercase" placeholder="Verification Code" onChange={e => setFormData({ ...formData, secretCode: e.target.value })} required />
+                                <input className="w-full bg-pink-500/5 border border-pink-500/20 p-4 rounded-xl outline-none text-pink-500 font-bold uppercase" placeholder="Secret Code" onChange={e => setFormData({ ...formData, secretCode: e.target.value })} required />
                             </div>
 
                             {/* College Locking Logic */}
@@ -364,13 +367,38 @@ const RegisterForm = () => {
                                 <div className="p-6 bg-pink-500/5 border border-pink-500/20 rounded-3xl flex items-start gap-4">
                                     <ShieldCheck className="text-pink-500" size={24} />
                                     <div>
-                                        <p className="text-xs font-black uppercase text-pink-500">Security Check</p>
-                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Fee: ₹{event?.eventPrice || 200} | Secured by Razorpay</p>
+                                        <p className="text-xs font-black uppercase text-pink-500">Payment Check</p>
+                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Fee: <span className='text-[12px] text-gray-300 ' > ₹{event?.eventPrice || 200}  </span>   Secured by Razorpay</p>
                                     </div>
                                 </div>
                             )}
 
-                            <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-pink-500 to-purple-600 py-6 rounded-2xl font-black uppercase text-2xl shadow-xl hover:scale-[1.01] transition-all">
+                            {/* 2. CONSENT PROTOCOL (CHECKBOX) */}
+                            <div className="mt-8 mb-4 px-2">
+                                <label className="flex items-center gap-4 cursor-pointer group">
+                                    <div className="relative flex items-center justify-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={acceptedTerms}
+                                            onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                            className="peer appearance-none w-5 h-5 border-2 border-white/10 rounded-md checked:bg-pink-500 checked:border-pink-500 transition-all cursor-pointer"
+                                        />
+                                        <Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest leading-relaxed group-hover:text-gray-300 transition-colors">
+                                        By proceeding, I authorize the transmission of my data and agree to the
+                                        <Link
+                                            to="/terms-and-conditions"
+                                            className="text-pink-500/80 hover:text-pink-500 underline ml-1 cursor-pointer transition-all decoration-pink-500/30 underline-offset-4"
+                                        >
+                                            Terms & Conditions
+                                        </Link>
+                                        of this registry.
+                                    </span>
+                                </label>
+                            </div>
+
+                            <button type="submit" disabled={loading || !acceptedTerms} className="w-full bg-gradient-to-r from-pink-500 to-purple-600 py-6 rounded-2xl font-black uppercase text-2xl shadow-xl hover:scale-[1.01] transition-all disabled:opacity-30 disabled:grayscale disabled:hover:scale-100">
                                 {loading ? <Loader2 className="animate-spin" /> : "Complete Registration"}
                             </button>
                         </div>

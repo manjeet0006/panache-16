@@ -138,7 +138,7 @@ const ScannerPage = ({ socket }) => {
 
   // --- Main Scanner View ---
   return (
-    <div className="max-w-md mx-auto space-y-4 p-4 pt-10">
+    <div className="max-w-md mx-auto space-y-4 p-4 pt-5 ">
       <div className="flex justify-between items-center bg-white/5 p-4 rounded-3xl border border-white/10 backdrop-blur-xl">
         <div>
           <h1 className="text-2xl font-black uppercase italic tracking-tighter text-pink-500 leading-none">
