@@ -54,7 +54,7 @@ const Header = () => {
               <span className="text-white font-black text-2xl italic">P</span>
             </motion.div>
             <span className="text-2xl font-black tracking-tighter uppercase italic text-white">
-              Panache <span className="text-pink-500">26</span>
+              Panache <span className="text-pink-500">16</span>
             </span>
           </Link>
 
