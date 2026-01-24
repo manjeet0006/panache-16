@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogIn, Menu, X, ArrowRight, Home, Calendar, Scan } from 'lucide-react';
+import { User, LogIn, Menu, X, ArrowRight, Home, Calendar, Scan, ChevronRight } from 'lucide-react';
 
 const Header = () => {
   const location = useLocation();
@@ -32,11 +32,11 @@ const Header = () => {
   };
 
   const linkVariants = {
-    closed: { x: 50, opacity: 0 },
+    closed: { x: 20, opacity: 0 },
     open: (i) => ({ 
       x: 0, 
       opacity: 1, 
-      transition: { delay: i * 0.1 + 0.1 } 
+      transition: { delay: i * 0.1 + 0.2 } 
     })
   };
 
@@ -98,22 +98,12 @@ const Header = () => {
             </div>
           </div>
 
-          {/* MOBILE TOGGLE BUTTON */}
+          {/* MOBILE TOGGLE BUTTON (Hidden when open to avoid double buttons) */}
           <button 
-            onClick={() => setIsOpen(!isOpen)} 
-            className="md:hidden relative z-[1002] w-10 h-10 flex items-center justify-center text-white"
+            onClick={() => setIsOpen(true)} 
+            className={`md:hidden relative z-[1002] w-10 h-10 flex items-center justify-center text-white transition-opacity duration-200 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
-            <AnimatePresence mode='wait'>
-                {isOpen ? (
-                    <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                        <X size={28} />
-                    </motion.div>
-                ) : (
-                    <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
-                        <Menu size={28} />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <Menu size={28} />
           </button>
         </div>
       </nav>
@@ -128,7 +118,7 @@ const Header = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] md:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-md z-[1001] md:hidden"
             />
             
             {/* Slide-out Menu */}
@@ -137,15 +127,28 @@ const Header = () => {
               initial="closed"
               animate="open"
               exit="closed"
-              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm bg-[#0A0A0A] border-l border-white/10 z-[1001] md:hidden flex flex-col shadow-2xl"
+              className="fixed top-0 right-0 bottom-0 w-[80%] max-w-xs bg-[#0A0A0A] border-l border-white/10 z-[1002] md:hidden flex flex-col shadow-2xl"
             >
-              {/* Menu Header */}
-              <div className="h-24 flex items-end px-8 pb-6 border-b border-white/5">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Navigation // System</p>
+              {/* 1. Mobile Menu Header (With Close Button) */}
+              <div className="flex items-center justify-between p-6 border-b border-white/5">
+                 <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-black text-xs italic">P</span>
+                    </div>
+                    <span className="text-sm font-black uppercase tracking-widest text-white">Menu</span>
+                 </div>
+                 
+                 {/* Close Button */}
+                 <button 
+                    onClick={() => setIsOpen(false)}
+                    className="w-8 h-8 flex items-center justify-center bg-white/5 rounded-full text-gray-400 hover:bg-pink-500 hover:text-white transition-all"
+                 >
+                    <X size={18} />
+                 </button>
               </div>
 
-              {/* Links */}
-              <div className="flex-1 flex flex-col justify-center px-8 gap-8">
+              {/* 2. Compact Links Section */}
+              <div className="flex-1 flex flex-col  overflow-y-auto">
                 {navLinks.map((link, i) => (
                   <motion.div 
                     key={link.name}
@@ -155,41 +158,47 @@ const Header = () => {
                     <Link 
                       to={link.path}
                       onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-4 text-2xl font-black uppercase tracking-tighter ${location.pathname === link.path ? 'text-pink-500' : 'text-white/60'}`}
+                      className={`group flex items-center justify-between p-3 rounded-xl transition-all ${
+                        location.pathname === link.path 
+                        ? 'bg-pink-500/10 border border-pink-500/20' 
+                        : 'hover:bg-white/5 border border-transparent'
+                      }`}
                     >
-                      <link.icon size={24} className={location.pathname === link.path ? 'text-pink-500' : 'text-gray-600'} />
-                      {link.name}
+                      <div className="flex items-center gap-4">
+                          <link.icon size={20} className={location.pathname === link.path ? 'text-pink-500' : 'text-gray-500 group-hover:text-white'} />
+                          <span className={`text-lg font-bold uppercase tracking-wide ${location.pathname === link.path ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                            {link.name}
+                          </span>
+                      </div>
+                      <ChevronRight size={16} className={`text-gray-600 group-hover:text-white transition-transform group-hover:translate-x-1 ${location.pathname === link.path ? 'text-pink-500' : ''}`} />
                     </Link>
                   </motion.div>
                 ))}
               </div>
 
-              {/* Mobile Auth Footer */}
-              <div className="p-8 border-t border-white/5">
+              {/* 3. Mobile Auth Footer */}
+              <div className="p-6 border-t border-white/5 bg-black/20">
                 {token ? (
                   <Link 
                     to="/dashboard" 
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-between w-full p-4 bg-white/5 border border-white/10 rounded-xl"
+                    className="flex items-center gap-3 w-full p-3 bg-gradient-to-r from-gray-900 to-black border border-white/10 rounded-xl active:scale-95 transition-transform"
                   >
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500">
-                            <User size={20} />
-                        </div>
-                        <div className="text-left">
-                            <p className="text-sm font-bold text-white">My Dashboard</p>
-                            <p className="text-[10px] text-gray-500 uppercase tracking-widest">Access Profile</p>
-                        </div>
+                    <div className="w-10 h-10 rounded-full bg-pink-500 flex items-center justify-center text-white shadow-lg shadow-pink-500/20">
+                        <User size={20} />
                     </div>
-                    <ArrowRight size={16} className="text-gray-500" />
+                    <div className="flex-1">
+                        <p className="text-sm font-bold text-white leading-none mb-1">My Dashboard</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">View Profile</p>
+                    </div>
                   </Link>
                 ) : (
                   <Link 
                     to="/login"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full py-4 bg-pink-600 text-white font-bold uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)] active:scale-95 transition-transform"
+                    className="flex items-center justify-center gap-2 w-full py-3.5 bg-pink-600 text-white font-bold uppercase text-xs tracking-[0.2em] rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)] active:scale-95 transition-transform"
                   >
-                    <LogIn size={18} /> Login / Join
+                    <LogIn size={16} /> Login Access
                   </Link>
                 )}
               </div>

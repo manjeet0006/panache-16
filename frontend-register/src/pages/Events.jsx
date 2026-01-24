@@ -49,7 +49,7 @@ const EventsExplorer = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white m-5 pb-32 relative selection:bg-pink-500/30">
+    <div className="min-h-screen bg-[#050505] pt-5 text-white m-5 pb-5 relative selection:bg-pink-500/30">
 
       {/* Background Atmosphere */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none z-0">
@@ -60,7 +60,7 @@ const EventsExplorer = () => {
       <div className="max-w-7xl mx-auto relative z-10">
 
         {/* Header Section */}
-        <header className="mb-20 pt-16 text-center">
+        <header className="mb-10 pt-16 text-center">
           <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/[0.03] border border-white/10 mb-8 backdrop-blur-xl group cursor-default">
             <Sparkles size={14} className="text-pink-500 group-hover:rotate-12 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Panache Era 2026 Lineup</span>
@@ -72,7 +72,7 @@ const EventsExplorer = () => {
             <span className="text-pink-500 drop-shadow-[0_0_30px_rgba(236,72,153,0.3)]">Explorer</span>
           </h1>
 
-          <div className="relative max-w-xl mx-auto mt-12 group">
+          <div className="relative max-w-xl mx-auto mt-8 group">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-pink-500 transition-colors" size={20} />
             <input
               type="text"
@@ -121,12 +121,12 @@ const EventsExplorer = () => {
                   <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-4 leading-[0.9] group-hover:text-pink-500 transition-colors">
                     {event.name}
                   </h3>
-                  <p className="text-gray-500 text-[11px] font-medium leading-relaxed mb-8 line-clamp-3">
+                  <p className="text-gray-500 text-[11px] font-medium leading-relaxed mb-2 line-clamp-3">
                     {event.description}
                   </p>
 
                   {/* Expandable Guidelines */}
-                  <div className="mb-8">
+                  <div className="mb-4">
                     <button
                       onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
                       className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-pink-500/60 hover:text-pink-500 transition-all"
@@ -150,7 +150,7 @@ const EventsExplorer = () => {
                   </div>
                 </div>
 
-                <div className="relative z-10 pt-6 border-t border-white/5 flex flex-col gap-6">
+                <div className="relative z-10 pt-3 border-t border-white/5 flex flex-col gap-6">
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2 text-gray-400">
                       <Users size={14} className="text-pink-500/50" />

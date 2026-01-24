@@ -39,7 +39,7 @@ const Home = () => {
       {/* --- 2. CINEMATIC HERO SECTION --- */}
       <motion.section
         style={{ opacity: heroOpacity, scale: heroScale }}
-        className="relative min-h-screen flex flex-col items-center justify-center text-center z-10 pt-20"
+        className="relative min-h-screen flex flex-col items-center pt-1 justify-center text-center z-10"
       >
         <motion.div
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}

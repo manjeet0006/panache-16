@@ -129,7 +129,7 @@ const TermsAndConditions = () => {
                             <SectionHeader icon={ShieldAlert} title="1.0 Preamble & Philosophy" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 text-sm leading-relaxed border-t border-white/5 pt-8 text-gray-400">
                                 <p>
-                                    PANACHE S-15 represents the pinnacle of cultural celebration at Vivekananda Global University. 
+                                    PANACHE S-16 represents the pinnacle of cultural celebration at Vivekananda Global University. 
                                     It is a platform where students from diverse backgrounds converge to exhibit skill, passion, 
                                     and excellence. The core motto governing all interactions is <span className="text-white font-bold italic">"Together We Perform, Together We Achieve"</span>.
                                 </p>

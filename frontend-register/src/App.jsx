@@ -69,9 +69,10 @@ function App() {
 
         <Header />
 
-        <main className="pt-20">
+        <main>
           <Routes>
             <Route path="/" element={<Home />} />
+
             <Route path="/login" element={<Login />} />
             <Route path="/events" element={<EventsExplorer />} />
             <Route path="/register/:eventId" element={<RegisterForm />} />
@@ -87,7 +88,7 @@ function App() {
                   <Dashboard />
                 </ProtectedRoute>
               }
-            />
+              />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
