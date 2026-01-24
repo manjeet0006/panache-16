@@ -3,6 +3,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogIn, Menu, X, ArrowRight, Home, Calendar, Scan, ChevronRight } from 'lucide-react';
 
+// ✅ IMPORT YOUR LOGO HERE
+import panacheLogo from '../assets/image.png'; 
+
 const Header = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -45,17 +48,14 @@ const Header = () => {
       <nav className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/10 bg-black/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           
-          {/* Logo */}
+          {/* ✅ UPDATED: IMAGE LOGO */}
           <Link to="/" className="flex items-center gap-3 group z-[1002]">
-            <motion.div 
-              whileHover={{ rotate: 12, scale: 1.1 }}
-              className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(236,72,153,0.3)]"
-            >
-              <span className="text-white font-black text-2xl italic">P</span>
-            </motion.div>
-            <span className="text-2xl font-black tracking-tighter uppercase italic text-white">
-              Panache <span className="text-pink-500">16</span>
-            </span>
+            <motion.img 
+              whileHover={{ scale: 1.05 }}
+              src={panacheLogo} 
+              alt="Panache 2026 Logo" 
+              className="h-10 md:h-12 object-contain" // Adjust height as needed
+            />
           </Link>
 
           {/* DESKTOP NAV */}
@@ -98,7 +98,7 @@ const Header = () => {
             </div>
           </div>
 
-          {/* MOBILE TOGGLE BUTTON (Hidden when open to avoid double buttons) */}
+          {/* MOBILE TOGGLE BUTTON */}
           <button 
             onClick={() => setIsOpen(true)} 
             className={`md:hidden relative z-[1002] w-10 h-10 flex items-center justify-center text-white transition-opacity duration-200 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
@@ -129,13 +129,11 @@ const Header = () => {
               exit="closed"
               className="fixed top-0 right-0 bottom-0 w-[80%] max-w-xs bg-[#0A0A0A] border-l border-white/10 z-[1002] md:hidden flex flex-col shadow-2xl"
             >
-              {/* 1. Mobile Menu Header (With Close Button) */}
+              {/* 1. Mobile Menu Header */}
               <div className="flex items-center justify-between p-6 border-b border-white/5">
+                 {/* Branding in Mobile Menu */}
                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-pink-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-black text-xs italic">P</span>
-                    </div>
-                    <span className="text-sm font-black uppercase tracking-widest text-white">Menu</span>
+                    <img src={panacheLogo} alt="Logo" className="h-8 object-contain" />
                  </div>
                  
                  {/* Close Button */}
@@ -147,8 +145,8 @@ const Header = () => {
                  </button>
               </div>
 
-              {/* 2. Compact Links Section */}
-              <div className="flex-1 flex flex-col  overflow-y-auto">
+              {/* 2. Links Section */}
+              <div className="flex-1 flex flex-col overflow-y-auto">
                 {navLinks.map((link, i) => (
                   <motion.div 
                     key={link.name}
@@ -158,7 +156,7 @@ const Header = () => {
                     <Link 
                       to={link.path}
                       onClick={() => setIsOpen(false)}
-                      className={`group flex items-center justify-between p-3 rounded-xl transition-all ${
+                      className={`group flex items-center justify-between p-3 mx-4 my-1 rounded-xl transition-all ${
                         location.pathname === link.path 
                         ? 'bg-pink-500/10 border border-pink-500/20' 
                         : 'hover:bg-white/5 border border-transparent'
