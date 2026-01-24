@@ -49,7 +49,7 @@ const EventsExplorer = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white  pb-32 px-6 relative selection:bg-pink-500/30">
+    <div className="min-h-screen bg-[#050505] text-white m-5 pb-32 relative selection:bg-pink-500/30">
 
       {/* Background Atmosphere */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none z-0">
@@ -66,7 +66,7 @@ const EventsExplorer = () => {
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Panache Era 2026 Lineup</span>
           </div>
 
-          <h1 className="text-7xl md:text-9xl font-black uppercase tracking-tighter italic leading-none mb-6">
+          <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter italic leading-none mb-6">
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500">Event</span>
             <br />
             <span className="text-pink-500 drop-shadow-[0_0_30px_rgba(236,72,153,0.3)]">Explorer</span>

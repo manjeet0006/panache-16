@@ -5,73 +5,129 @@ import {
     CreditCard, MapPin, ArrowLeft, Music, Palette, 
     Trophy, Gamepad2, Info, Smartphone, Scale, 
     Zap, Mic, Camera, BookOpen, Scissors, Activity, 
-    Terminal, Flag
+    Terminal, Flag, Menu, X
 } from 'lucide-react';
 
 /**
  * PANACHE S-15: MASTER LEGAL ARCHIVE & PARTICIPANT PROTOCOL
  * DATE: 19th-22nd March 2026
  * MOTTO: Together We Perform, Together We Achieve
+ * VERSION: 2.4.0 (Mobile Optimized)
  */
 
 const TermsAndConditions = () => {
+    // UI State for expanding sections
+    const [activeSection, setActiveSection] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New state for mobile nav
+
+    const toggleSection = (section) => {
+        setActiveSection(activeSection === section ? null : section);
+    };
+
+    // Scroll handler for smooth navigation
+    const scrollToSection = (id) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+            setMobileMenuOpen(false);
+        }
+    };
+
+    const sections = ['Preamble', 'Framework', 'Departments', 'Events', 'E-Sports', 'Legal', 'Contact'];
+
     return (
-        <div className="min-h-screen bg-[#050505] text-gray-400 font-sans selection:bg-pink-500/30 selection:text-white pb-32">
+        // Added overflow-x-hidden to prevent horizontal scroll from large text
+        <div className="min-h-screen bg-[#050505] text-gray-400 font-sans selection:bg-pink-500/30 selection:text-white pb-32 overflow-x-hidden">
             
             {/* --- NAVIGATION HEADER --- */}
             <div className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-6 py-4">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-pink-500 transition-all group">
                         <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> 
-                        Return_to_Portal
+                        <span className="hidden sm:inline">Return_to_Portal</span>
+                        <span className="sm:hidden">Back</span>
                     </Link>
-                    <div className="flex items-center gap-3">
-                        <span className="hidden md:inline text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 italic">Sector // Cultural_Registry</span>
-                        <div className="h-1.5 w-1.5 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,1)] animate-pulse" />
+                    
+                    <div className="flex items-center gap-4">
+                         {/* Mobile Menu Toggle */}
+                         <button 
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="lg:hidden p-2 text-white bg-white/5 rounded-lg border border-white/10"
+                        >
+                            {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
+                        </button>
+
+                        <div className="flex items-center gap-3">
+                            <span className="hidden md:inline text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 italic">Sector // Cultural_Registry</span>
+                            <div className="h-1.5 w-1.5 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,1)] animate-pulse" />
+                        </div>
                     </div>
                 </div>
+
+                {/* --- MOBILE QUICK NAV (Dropdown) --- */}
+                {mobileMenuOpen && (
+                    <div className="lg:hidden absolute top-full left-0 w-full bg-[#0a0a0a] border-b border-white/10 p-4 shadow-2xl animate-in slide-in-from-top-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-pink-500 mb-3 px-2">Jump to Section</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            {sections.map((item) => (
+                                <button 
+                                    key={item} 
+                                    onClick={() => scrollToSection(item.toLowerCase())}
+                                    className="text-left px-4 py-3 bg-white/5 rounded-lg text-xs font-bold text-gray-300 active:bg-pink-500 active:text-white"
+                                >
+                                    {item}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 pt-24">
+            <div className="max-w-7xl mx-auto px-6 pt-16 md:pt-24">
                 
                 {/* --- HERO HEADER --- */}
-                <header className="mb-24 relative border-b border-white/5 pb-12">
-                    <div className="absolute -top-16 -left-8 text-[140px] font-black text-white/[0.02] select-none pointer-events-none uppercase italic leading-none">
+                <header className="mb-16 md:mb-24 relative border-b border-white/5 pb-12">
+                    {/* Fixed: Adjusted text size and position for mobile to prevent overflow */}
+                    <div className="absolute -top-12 -left-4 md:-top-16 md:-left-8 text-[80px] md:text-[140px] font-black text-white/[0.02] select-none pointer-events-none uppercase italic leading-none">
                         Protocol
                     </div>
-                    <h1 className="text-6xl md:text-9xl font-black uppercase italic tracking-tighter text-white leading-none relative z-10">
+                    <h1 className="text-5xl md:text-9xl font-black uppercase italic tracking-tighter text-white leading-none relative z-10">
                         Registry <span className="text-pink-500 underline decoration-white/10 underline-offset-8">Rules</span>
                     </h1>
-                    <div className="flex flex-wrap items-center gap-6 mt-10">
+                    <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-8 md:mt-10">
                         <div className="px-5 py-2 border border-pink-500/20 bg-pink-500/5 rounded-full flex items-center gap-3">
                             <div className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse" />
-                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Version // S-15.2026</span>
+                            <span className="text-[9px] md:text-[10px] font-black text-white uppercase tracking-widest">Version // S-16.2026</span>
                         </div>
-                        <p className="text-xs font-bold uppercase tracking-[0.4em] text-gray-500">
-                            Official Operational Guidelines • 19th-22nd March 2026
+                        <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] md:tracking-[0.4em] text-gray-500">
+                            Operational Guidelines
                         </p>
                     </div>
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                     
-                    {/* --- SIDEBAR NAVIGATION (Desktop) --- */}
+                    {/* --- SIDEBAR NAVIGATION (Desktop Only) --- */}
                     <div className="hidden lg:block lg:col-span-3 sticky top-32 h-fit space-y-2">
                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-4 pl-3">Directory</p>
-                        {['Preamble', 'Framework', 'Departments', 'Events', 'E-Sports', 'Legal', 'Contact'].map((item) => (
-                            <a key={item} href={`#${item.toLowerCase()}`} className="block px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                        {sections.map((item) => (
+                            <button 
+                                key={item} 
+                                onClick={() => scrollToSection(item.toLowerCase())} 
+                                className="block w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                            >
                                 {item}
-                            </a>
+                            </button>
                         ))}
                     </div>
 
                     {/* --- MAIN CONTENT AREA --- */}
-                    <div className="lg:col-span-9 space-y-32">
+                    <div className="lg:col-span-9 space-y-20 md:space-y-32">
 
                         {/* 1.0 PREAMBLE */}
                         <section id="preamble" className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <SectionHeader icon={ShieldAlert} title="1.0 Preamble & Philosophy" />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-sm leading-relaxed border-t border-white/5 pt-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 text-sm leading-relaxed border-t border-white/5 pt-8 text-gray-400">
                                 <p>
                                     PANACHE S-15 represents the pinnacle of cultural celebration at Vivekananda Global University. 
                                     It is a platform where students from diverse backgrounds converge to exhibit skill, passion, 
@@ -107,19 +163,19 @@ const TermsAndConditions = () => {
                                     />
                                 </div>
                                 
-                                <div className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-6">
+                                <div className="p-6 md:p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-6">
                                     <h3 className="text-xs font-black text-pink-500 uppercase tracking-widest">Digital Compliance</h3>
                                     <ul className="space-y-4 text-xs text-gray-400">
                                         <li className="flex gap-4">
-                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600" />
+                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600 shrink-0" />
                                             <span>Mandatory download of <span className="text-white font-bold">Zolo Scholar App</span> for all participants.</span>
                                         </li>
                                         <li className="flex gap-4">
-                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600" />
+                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600 shrink-0" />
                                             <span>Campus entry and venue access is granted ONLY through Zolo check-in.</span>
                                         </li>
                                         <li className="flex gap-4">
-                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600" />
+                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600 shrink-0" />
                                             <span>College ID cards must be physically present at all times for security verification.</span>
                                         </li>
                                     </ul>
@@ -132,8 +188,9 @@ const TermsAndConditions = () => {
                             <SectionHeader icon={Info} title="3.0 Departmental Registry" />
                             <p className="text-xs text-gray-500 mb-8 uppercase tracking-widest">Verified Team Codes & Cultural Themes</p>
                             
-                            <div className="overflow-hidden border border-white/10 rounded-3xl bg-white/[0.01]">
-                                <table className="w-full text-left border-collapse">
+                            {/* Fixed: Changed overflow-hidden to overflow-x-auto for mobile scrolling */}
+                            <div className="overflow-x-auto border border-white/10 rounded-3xl bg-white/[0.01]">
+                                <table className="w-full text-left border-collapse min-w-[600px]">
                                     <thead>
                                         <tr className="bg-white/5 border-b border-white/5 text-[9px] font-black text-pink-500 uppercase tracking-widest">
                                             <th className="px-6 py-5">#</th>
@@ -161,6 +218,7 @@ const TermsAndConditions = () => {
                                     </tbody>
                                 </table>
                             </div>
+                            <p className="lg:hidden text-[9px] text-gray-600 mt-2 text-center italic">← Swipe to view table →</p>
                         </section>
 
                         {/* 4.0 EVENT PROTOCOLS */}
@@ -380,7 +438,8 @@ const SectionHeader = ({ icon: Icon, title }) => (
         <div className="p-3 bg-pink-500/10 rounded-xl text-pink-500">
             <Icon size={24} />
         </div>
-        <h2 className="text-3xl font-black uppercase tracking-tighter text-white">{title}</h2>
+        {/* Adjusted size for mobile text wrapping */}
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-white leading-tight">{title}</h2>
     </div>
 );
 
@@ -395,8 +454,8 @@ const RuleCard = ({ code, title, desc }) => (
 const DeptRow = ({ id, dept, team, theme }) => (
     <tr className="hover:bg-white/[0.02] transition-colors group">
         <td className="px-6 py-5 font-mono text-gray-600 group-hover:text-pink-500">{id}</td>
-        <td className="px-6 py-5 text-gray-300 font-bold uppercase text-[10px] tracking-wide">{dept}</td>
-        <td className="px-6 py-5 text-white font-black uppercase text-[10px] tracking-widest">{team}</td>
+        <td className="px-6 py-5 text-gray-300 font-bold uppercase text-[10px] tracking-wide whitespace-nowrap md:whitespace-normal">{dept}</td>
+        <td className="px-6 py-5 text-white font-black uppercase text-[10px] tracking-widest whitespace-nowrap">{team}</td>
         <td className="px-6 py-5 text-pink-500 font-bold uppercase text-[10px] tracking-widest">{theme}</td>
     </tr>
 );
@@ -419,7 +478,7 @@ const EventDetail = ({ title, rules }) => (
         <ul className="space-y-2">
             {rules.map((rule, idx) => (
                 <li key={idx} className="text-[10px] text-gray-400 flex items-start gap-2">
-                    <span className="text-pink-500 mt-0.5">•</span>
+                    <span className="text-pink-500 mt-0.5 shrink-0">•</span>
                     {rule}
                 </li>
             ))}
