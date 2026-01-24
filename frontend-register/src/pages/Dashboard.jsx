@@ -1,129 +1,220 @@
-import React, { useEffect, useState } from 'react';
-import { 
-    Ticket, Users, ShieldCheck, LogOut, ArrowLeft, 
-    Phone, Hash, Shield, Info, CheckCircle, Clock, 
-    XCircle, ArrowRight, UserCircle 
+import React, { useEffect, useState, useMemo } from 'react';
+import {
+    Ticket, Users, ShieldCheck, LogOut, ArrowLeft,
+    Phone, Hash, Shield, Info, CheckCircle,
+    XCircle, UserCircle, School, CreditCard, ArrowRight,
+    Star, LayoutGrid, Activity, Search, Filter,
+    Music, Trophy, Calendar, MapPin, Download,
+    Zap, TrendingUp, UserPlus, Fingerprint
 } from 'lucide-react';
 import { toast } from 'sonner';
 import API from '../api';
 import TicketModal from '../components/TicketModal';
 
-const Dashboard = () => {
-    // --- 1. STATE MANAGEMENT ---
-    const [teams, setTeams] = useState([]);
-    const [user] = useState(JSON.parse(localStorage.getItem('panache_user')) || {});
-    const [loading, setLoading] = useState(true);
-    const [selectedTicket, setSelectedTicket] = useState(null); // For the QR Modal
-    const [inspectingTeam, setInspectingTeam] = useState(null); // For the Detail View
+// --- SUB-COMPONENT: STAT CARD ---
+const StatCard = ({ label, value, icon: Icon, color }) => (
+    <div className="group bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.04] transition-all duration-500">
+        <div className="flex justify-between items-start mb-4">
+            <div className={`p-3 rounded-2xl bg-white/5 ${color} group-hover:scale-110 transition-transform`}>
+                <Icon size={20} />
+            </div>
+        </div>
+        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-1">{label}</p>
+        <p className="text-3xl font-black italic text-white tracking-tighter">{value}</p>
+    </div>
+);
 
-    // --- 2. DATA FETCHING ---
+const Dashboard = () => {
+    // --- STATE MANAGEMENT ---
+    const [teams, setTeams] = useState([]);
+    const [user] = useState(JSON.parse(localStorage.getItem('panache_user') || '{}'));
+    const [loading, setLoading] = useState(true);
+    const [inspectingTeam, setInspectingTeam] = useState(null);
+    const [selectedTicket, setSelectedTicket] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeFilter, setActiveFilter] = useState("ALL");
+
+    // --- DATA INITIALIZATION ---
     useEffect(() => {
-        const fetchHistory = async () => {
+        const fetchDashboardData = async () => {
             try {
-                // The API instance should have an interceptor to attach the Bearer Token
                 const res = await API.get('/user/history');
-                setTeams(res.data);
+                if (Array.isArray(res.data)) {
+                    setTeams(res.data);
+                } else {
+                    setTeams([]);
+                }
             } catch (err) {
-                toast.error("Security session expired. Re-authorizing...");
+                console.error("Fetch Error:", err);
+                toast.error("Session expired. Please login again.");
                 handleLogout();
             } finally {
-                setLoading(false);
+                setTimeout(() => setLoading(false), 800);
             }
         };
-        fetchHistory();
+        fetchDashboardData();
     }, []);
 
-    // --- 3. HANDLERS ---
+    // --- UTILITIES ---
     const handleLogout = () => {
         localStorage.clear();
         window.location.href = '/login';
     };
 
-    const getStatusIcon = (status) => {
-        if (status === 'APPROVED') return <CheckCircle className="text-green-500" size={14} />;
-        if (status === 'REJECTED') return <XCircle className="text-red-500" size={14} />;
-        return <Clock className="text-yellow-500" size={14} />;
+    const isInternal = (team) => {
+        return team?.college?.isInternal || team?.isVgu || false;
     };
 
-    // --- 4. RENDER: LOADING STATE ---
+    // --- SEARCH & FILTER LOGIC ---
+    const filteredTeams = useMemo(() => {
+        return teams.filter(team => {
+            const matchesSearch = team.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                team.event.name.toLowerCase().includes(searchQuery.toLowerCase());
+            // Updated Categories
+            const matchesFilter = activeFilter === "ALL" || team.event.category === activeFilter;
+            return matchesSearch && matchesFilter;
+        });
+    }, [teams, searchQuery, activeFilter]);
+
+    // --- RENDER: LOADING VIEW ---
     if (loading) return (
-        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center space-y-4">
-            <div className="w-12 h-12 border-4 border-pink-500/20 border-t-pink-500 rounded-full animate-spin"></div>
-            <p className="text-pink-500 font-black uppercase italic tracking-widest text-xs animate-pulse">
-                Syncing Command Center...
-            </p>
+        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="absolute w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px] animate-pulse"></div>
+            <div className="relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 border-t-2 border-pink-500 rounded-full animate-spin mb-6"></div>
+                <h2 className="text-white font-bold uppercase tracking-[0.3em] text-xs">Loading Your Dashboard</h2>
+            </div>
         </div>
     );
 
-    // --- 5. RENDER: SQUAD INSPECTION VIEW (Drill-down) ---
+    // --- RENDER: DETAIL VIEW ---
     if (inspectingTeam) {
         return (
-            <div className="min-h-screen bg-[#050505] text-white pt-32 pb-20 px-4 md:px-10 animate-in slide-in-from-right duration-500">
-                <div className="max-w-4xl mx-auto">
-                    <button 
+            <div className="min-h-screen bg-[#050505] text-white pt-28 pb-20 px-6 animate-in slide-in-from-right duration-500">
+                <div className="max-w-6xl mx-auto">
+                    <button
                         onClick={() => setInspectingTeam(null)}
-                        className="flex items-center gap-2 text-gray-500 hover:text-pink-500 transition-colors uppercase font-black text-[10px] tracking-[0.3em] mb-10"
+                        className="group flex items-center gap-3 text-gray-500 hover:text-pink-500 transition-all uppercase font-bold text-[10px] tracking-widest mb-12"
                     >
-                        <ArrowLeft size={16} /> Return to Grid
+                        <div className="p-2 rounded-full border border-white/10 group-hover:border-pink-500/50">
+                            <ArrowLeft size={16} />
+                        </div>
+                        Back to Home
                     </button>
 
-                    <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 backdrop-blur-3xl relative overflow-hidden">
-                        <div className="absolute -top-24 -right-24 w-96 h-96 bg-pink-500/10 blur-[120px] pointer-events-none"></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                        <div className="lg:col-span-8 space-y-8">
+                            <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-8 md:p-12 backdrop-blur-3xl relative overflow-hidden">
+                                <div className="absolute -top-20 -right-20 w-80 h-80 bg-pink-500/5 blur-[100px] pointer-events-none"></div>
 
-                        <header className="mb-12 border-b border-white/5 pb-8">
-                            <span className="bg-pink-500 text-[10px] font-black px-4 py-1.5 rounded-lg uppercase italic tracking-tighter mb-4 inline-block">
-                                Personnel File
-                            </span>
-                            <h2 className="text-6xl font-black uppercase italic tracking-tighter leading-none mb-2">
-                                {inspectingTeam.teamName}
-                            </h2>
-                            <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-sm">
-                                Deployment: <span className="text-white">{inspectingTeam.event.name}</span>
-                            </p>
-                        </header>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <div className="space-y-6">
-                                <h4 className="text-[10px] font-black uppercase text-pink-500 tracking-[0.4em] mb-6 flex items-center gap-2">
-                                   <Users size={14} /> Squad Roster
-                                </h4>
-                                {inspectingTeam.members.map((member, i) => (
-                                    <div key={i} className="flex items-center gap-5 p-5 bg-white/5 border border-white/5 rounded-2xl hover:border-pink-500/30 transition-all">
-                                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center font-black text-xl ${member.isLeader ? 'bg-pink-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.4)]' : 'bg-white/10 text-gray-400'}`}>
-                                            {member.isLeader ? <Shield size={24} /> : i + 1}
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 pb-10 border-b border-white/5">
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <span className="bg-pink-500 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-widest">
+                                                Registered Event
+                                            </span>
                                         </div>
-                                        <div>
-                                            <p className="font-black uppercase italic text-xl leading-none mb-2">{member.name}</p>
-                                            <div className="flex flex-wrap gap-4">
-                                                <span className="text-[10px] text-gray-500 flex items-center gap-1.5 font-bold">
-                                                    <Phone size={12} className="text-pink-500" /> {member.phone}
-                                                </span>
-                                                {member.enrollment && (
-                                                    <span className="text-[10px] text-gray-500 flex items-center gap-1.5 font-bold">
-                                                        <Hash size={12} className="text-pink-500" /> {member.enrollment}
-                                                    </span>
-                                                )}
+                                        <h2 className="text-5xl font-black uppercase italic tracking-tighter leading-none mb-4">
+                                            {inspectingTeam.teamName}
+                                        </h2>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                                                <Calendar size={14} className="text-pink-500" /> Feb 12-14, 2026
+                                            </div>
+                                            <div className="flex items-center gap-2 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                                                <MapPin size={14} className="text-pink-500" /> VGU Campus
                                             </div>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-
-                            <div className="space-y-8">
-                                <div className="p-8 bg-black/40 rounded-[2rem] border border-white/5">
-                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Authorization Code</p>
-                                    <p className="font-mono text-3xl font-bold text-pink-500 uppercase">{inspectingTeam.ticketCode || 'PENDING'}</p>
-                                    <div className="mt-6 pt-6 border-t border-white/5">
-                                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Origin</p>
-                                        <p className="text-white font-bold uppercase italic">{inspectingTeam.college.name}</p>
+                                    <div className="bg-black/40 p-6 rounded-[2rem] border border-white/5 text-center min-w-[140px]">
+                                        <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">Status</p>
+                                        <p className={`text-xl font-black italic uppercase ${inspectingTeam.paymentStatus === 'APPROVED' ? 'text-green-500' : 'text-yellow-500'}`}>
+                                            {inspectingTeam.paymentStatus}
+                                        </p>
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={() => setSelectedTicket(inspectingTeam)}
-                                    className="w-full bg-white text-black py-6 rounded-2xl font-black uppercase italic tracking-tighter text-xl hover:bg-pink-500 hover:text-white transition-all shadow-2xl"
-                                >
-                                    Launch Digital Pass
-                                </button>
+
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h4 className="text-[11px] font-bold uppercase text-pink-500 tracking-[0.3em] flex items-center gap-3">
+                                            <Users size={16} /> Member List
+                                        </h4>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {inspectingTeam.members.map((member, i) => (
+                                            <div key={i} className="flex items-center justify-between p-6 bg-white/[0.02] border border-white/5 rounded-3xl hover:border-pink-500/20 hover:bg-white/[0.04] transition-all group">
+                                                <div className="flex items-center gap-5">
+                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl transition-all ${member.isLeader ? 'bg-pink-500 text-white shadow-[0_0_20px_rgba(236,72,153,0.3)]' : 'bg-white/5 text-gray-500'}`}>
+                                                        {member.isLeader ? <Shield size={24} /> : i + 1}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold uppercase italic text-xl leading-none mb-2 group-hover:text-pink-500 transition-colors">{member.name}</p>
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="text-[9px] text-gray-500 flex items-center gap-1.5 font-bold tracking-widest">
+                                                                <Phone size={10} className="text-pink-500" /> {member.phone}
+                                                            </span>
+                                                            {/* Show Enrollment ID for VGU Students */}
+                                                            {isInternal(inspectingTeam) && member.enrollment
+                                                                && (
+                                                                    <span className="text-[9px] text-gray-500 flex items-center gap-1.5 font-bold tracking-widest">
+                                                                        <Hash size={10} className="text-pink-500" /> {member.enrollment
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {member.isLeader && (
+                                                    <div className="text-[8px] font-bold uppercase tracking-widest text-pink-500/50 italic border border-pink-500/20 px-2 py-1 rounded">Head</div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-3xl sticky top-28">
+                                <h4 className="text-[10px] font-bold uppercase text-pink-500 tracking-[0.3em] mb-8 flex items-center gap-2">
+                                    <Fingerprint size={16} /> Access Details
+                                </h4>
+
+                                {isInternal(inspectingTeam) ? (
+                                    <div className="space-y-8">
+                                        <div className="w-24 h-24 bg-pink-500/10 rounded-[2rem] flex items-center justify-center mx-auto text-pink-500 border border-pink-500/20">
+                                            <CreditCard size={40} />
+                                        </div>
+                                        <div className="text-center space-y-4">
+                                            <h3 className="text-2xl font-bold uppercase italic text-white tracking-tighter">VGU Student Entry</h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase leading-relaxed tracking-widest px-4">
+                                                Entry for VGU students is verified using your **Physical ID Card**.
+                                            </p>
+                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-start gap-3 text-left">
+                                                <Info size={16} className="text-pink-500 shrink-0" />
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase leading-normal">
+                                                    You don't need a QR code. Just show your ID at the registration desk.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-8">
+                                        <div className="p-8 bg-black/60 rounded-[2rem] border border-white/5 text-center group">
+                                            <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-2">Ticket Code</p>
+                                            <p className="font-mono text-3xl font-bold text-pink-500 uppercase tracking-[0.2em] mb-8 group-hover:scale-105 transition-transform">
+                                                {inspectingTeam.ticketCode || '---'}
+                                            </p>
+                                            <button
+                                                onClick={() => setSelectedTicket(inspectingTeam)}
+                                                className="w-full bg-white text-black py-5 rounded-2xl font-bold uppercase italic tracking-tighter text-lg hover:bg-pink-500 hover:text-white transition-all shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex items-center justify-center gap-3"
+                                            >
+                                                <Ticket size={20} /> View Ticket
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -132,130 +223,169 @@ const Dashboard = () => {
         );
     }
 
-    // --- 6. RENDER: MAIN DASHBOARD VIEW ---
     return (
-        <div className="min-h-screen bg-[#050505] text-white pt-24 pb-20 px-4 md:px-10">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-[#050505] text-white pt-24 pb-20 px-6 relative overflow-hidden">
 
-                {/* HEADER / TOP BAR */}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 bg-white/5 border border-white/10 p-6 rounded-[2rem] backdrop-blur-xl">
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center text-3xl font-black italic shadow-lg shadow-pink-500/20">
-                            {user.name?.charAt(0) || 'P'}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-pink-500/10 to-transparent pointer-events-none blur-[150px]" />
+
+            <div className="max-w-7xl mx-auto relative z-10">
+
+                {/* HEADER */}
+                <header className="flex flex-col md:flex-row justify-between items-center mb-16 bg-white/[0.03] border border-white/10 p-8 rounded-[3rem] backdrop-blur-3xl relative overflow-hidden">
+                    <div className="flex items-center gap-6 z-10">
+                        <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-700 rounded-3xl flex items-center justify-center text-4xl font-black italic shadow-2xl relative border border-white/10">
+                            {user.name?.charAt(0) || 'U'}
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black uppercase italic tracking-tighter">
-                                Welcome, <span className="text-pink-500">{user.name || 'Leader'}</span>
+                            <h1 className="text-4xl font-black uppercase italic tracking-tighter leading-none mb-1">
+                                Welcome, <span className="text-pink-500">{user.name || 'Student'}</span>
                             </h1>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                                <ShieldCheck size={12} className="text-pink-500" /> Authorized: {user.code}
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em] flex items-center gap-2">
+                                <ShieldCheck size={14} className="text-pink-500" /> Account Code: {user.code}
                             </p>
                         </div>
                     </div>
-                    <button onClick={handleLogout} className="mt-4 md:mt-0 flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest border border-white/10 hover:bg-red-500/10 hover:border-red-500/50 transition-all text-gray-400 hover:text-red-500">
-                        <LogOut size={16} /> Terminate Session
-                    </button>
+
+                    <div className="flex items-center gap-4 mt-8 md:mt-0">
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest border border-red-500/20 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/50 transition-all text-red-500"
+                        >
+                            <LogOut size={16} /> Logout
+                        </button>
+                    </div>
                 </header>
 
-                {/* STATS OVERVIEW */}
-                <div className="grid grid-cols-2  md:grid-cols-4 gap-4 mb-12">
-                    {[
-                        { label: 'Active Squads', val: teams.length, color: 'text-white' },
-                        { label: 'Verified', val: teams.filter(t => t.paymentStatus === 'APPROVED').length, color: 'text-green-500' },
-                        { label: 'Pending', val: teams.filter(t => t.paymentStatus === 'PENDING').length, color: 'text-yellow-500' },
-                        { label: 'Total Players', val: teams.reduce((acc, t) => acc + t.members.length, 0), color: 'text-pink-500' }
-                    ].map((s, i) => (
-                        <div key={i} className="bg-white/5 border flex flex-col items-center border-white/10 p-6 rounded-3xl backdrop-blur-sm">
-                            <p className="text-[15px] font-black uppercase text-gray-500 tracking-widest mb-1">{s.label}</p>
-                            <p className={`text-3xl font-black italic ${s.color}`}>{s.val}</p>
-                        </div>
-                    ))}
+                {/* STATS */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+                    <StatCard
+                        label="My Registrations"
+                        value={teams.length}
+                        icon={LayoutGrid}
+                        color="text-white"
+                    />
+                    <StatCard
+                        label="Payments Verified"
+                        value={teams.filter(t => t.paymentStatus === 'APPROVED').length}
+                        icon={CheckCircle}
+                        color="text-green-500"
+                    />
+                    <StatCard
+                        label="Total Members"
+                        value={teams.reduce((acc, t) => acc + (t.members?.length || 0), 0)}
+                        icon={Users}
+                        color="text-purple-500"
+                    />
                 </div>
 
-                {/* SQUAD GRID */}
-                <div className="grid grid-cols-1 gap-6">
-                    {teams.map((team) => (
-                        <div 
-                            key={team.id} 
-                            onClick={() => setInspectingTeam(team)}
-                            className="relative group bg-white/5 border border-white/10 rounded-[2.5rem] p-6 md:p-10 hover:border-pink-500/30 transition-all duration-500 cursor-pointer overflow-hidden"
-                        >
-                            <div className="flex flex-col lg:flex-row gap-10 items-start">
-                                
-                                {/* Info Section */}
-                                <div className="flex-1 space-y-6">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className="bg-pink-500 text-[10px] font-black px-3 py-1 rounded-md uppercase italic tracking-tighter">
-                                                {team.event.category}
-                                            </span>
-                                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-black uppercase text-gray-400">
-                                                {getStatusIcon(team.paymentStatus)} {team.paymentStatus}
+                {/* FILTERS */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10 px-4">
+                    <div className="relative w-full md:w-96 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-hover:text-pink-500 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search events..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold placeholder:text-gray-600 focus:outline-none focus:border-pink-500/50 transition-all"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
+                        {['ALL', 'PANACHE', 'PRATISHTHA', 'PRAGATI'].map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setActiveFilter(cat)}
+                                className={`px-5 py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${activeFilter === cat ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/20' : 'bg-white/5 text-gray-500 border border-white/5 hover:bg-white/10'}`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* GRID */}
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6">
+                        {filteredTeams.map((team) => {
+                            const internal = isInternal(team);
+                            return (
+                                <div
+                                    key={team.id}
+                                    className="group relative bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 md:p-10 hover:bg-white/[0.04] hover:border-pink-500/30 transition-all duration-500"
+                                >
+                                    <div className="flex flex-col lg:flex-row justify-between items-center gap-10">
+                                        <div className="flex-1 space-y-6">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <span className="text-[9px] font-bold px-3 py-1 rounded-lg bg-pink-500/10 text-pink-500 uppercase tracking-widest border border-pink-500/20">
+                                                        {team.event?.category}
+                                                    </span>
+                                                    <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
+                                                        <div className={`w-2 h-2 rounded-full ${team.paymentStatus === 'APPROVED' ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
+                                                        {team.paymentStatus}
+                                                    </div>
+                                                </div>
+                                                <h3
+                                                    onClick={() => setInspectingTeam(team)}
+                                                    className="text-4xl font-black uppercase italic tracking-tighter mb-3 cursor-pointer hover:text-pink-500 transition-colors"
+                                                >
+                                                    {team.teamName}
+                                                </h3>
+                                                <p className="text-gray-500 font-bold uppercase text-[10px] flex items-center gap-2 tracking-widest">
+                                                    Event: {team.event?.name}
+                                                </p>
                                             </div>
                                         </div>
-                                        <h3 className="text-4xl font-black uppercase italic tracking-tighter mb-1 leading-none">{team.teamName}</h3>
-                                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-xs">Event: {team.event.name}</p>
-                                    </div>
 
-                                    <div className="flex flex-wrap gap-2">
-                                        {team.members.map((m, idx) => (
-                                            <div key={idx} className="bg-black/40 border border-white/5 px-3 py-2 rounded-xl flex items-center gap-2">
-                                                <div className={`w-2 h-2 rounded-full ${m.isLeader ? 'bg-pink-500' : 'bg-gray-600'}`}></div>
-                                                <span className="text-[10px] font-bold uppercase tracking-widest">{m.name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Journey Tracker */}
-                                <div className="w-full lg:w-72 bg-black/40 border border-white/5 p-6 rounded-3xl">
-                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4">Journey Tracking</p>
-                                    <div className="space-y-4">
-                                        {[
-                                            { label: 'Registration', done: true },
-                                            { label: 'Payment Verified', done: team.paymentStatus === 'APPROVED' },
-                                            { label: 'Gate Entry', done: team.entryLogs?.some(l => l.type === 'ENTRY') },
-                                        ].map((step, idx) => (
-                                            <div key={idx} className="flex items-center gap-3">
-                                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${step.done ? 'bg-green-500' : 'bg-white/10 text-gray-600'}`}>
-                                                    {step.done && <CheckCircle size={12} className="text-black" />}
+                                        <div className="flex flex-col md:flex-row items-center gap-6">
+                                            {internal ? (
+                                                <div className="px-8 py-5 border border-dashed border-white/10 rounded-3xl flex flex-col items-center gap-2 opacity-50">
+                                                    <School size={24} className="text-pink-500" />
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest italic">Use VGU Student ID</span>
                                                 </div>
-                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${step.done ? 'text-white' : 'text-gray-600'}`}>{step.label}</span>
-                                            </div>
-                                        ))}
+                                            ) : (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedTicket(team);
+                                                    }}
+                                                    className="w-full md:w-auto bg-white text-black px-10 py-5 rounded-2xl font-bold uppercase italic tracking-tighter text-lg hover:bg-pink-500 hover:text-white transition-all shadow-xl"
+                                                >
+                                                    View Ticket
+                                                </button>
+                                            )}
+
+                                            <button
+                                                onClick={() => setInspectingTeam(team)}
+                                                className="w-full md:w-auto p-5 rounded-2xl bg-white/5 border border-white/5 text-gray-500 hover:text-pink-500 transition-all"
+                                            >
+                                                <ArrowRight size={24} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Quick Actions */}
-                                <div className="w-full lg:w-64 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                        onClick={() => setSelectedTicket(team)}
-                                        className="w-full bg-white text-black py-5 rounded-2xl font-black uppercase italic tracking-tighter text-lg shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:bg-pink-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Ticket size={20} /> View Ticket
-                                    </button>
-                                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl text-center">
-                                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Pass Code</p>
-                                        <p className="font-mono text-sm font-bold text-pink-500 uppercase">{team.ticketCode || "PROCESSING"}</p>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    ))}
+                            );
+                        })}
+                    </div>
                 </div>
 
-                {/* EMPTY STATE */}
-                {teams.length === 0 && (
-                    <div className="py-32 text-center bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                        <Info className="mx-auto mb-4 text-gray-700" size={48} />
-                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] italic">No squads deployed to the field.</p>
-                        <button onClick={() => window.location.href = '/events'} className="mt-6 text-pink-500 font-black uppercase tracking-tighter border-b-2 border-pink-500 hover:text-white transition-all">Recruit Team Now</button>
+                {/* EMPTY */}
+                {filteredTeams.length === 0 && (
+                    <div className="py-40 text-center bg-white/[0.01] border-2 border-dashed border-white/5 rounded-[4rem]">
+                        <p className="text-gray-600 font-bold uppercase tracking-[0.4em] italic text-sm mb-8">
+                            No events found here.
+                        </p>
+                        <button
+                            onClick={() => window.location.href = '/events'}
+                            className="bg-white text-black px-10 py-5 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-pink-500 hover:text-white transition-all"
+                        >
+                            <UserPlus size={16} className="inline mr-2" /> Register Now
+                        </button>
                     </div>
                 )}
             </div>
 
-            {/* MODAL OVERLAYS */}
             {selectedTicket && (
                 <TicketModal
                     team={selectedTicket}

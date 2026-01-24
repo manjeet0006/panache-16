@@ -95,6 +95,22 @@ const RegisterForm = () => {
         }
     }, [event, formData.members.length]);
 
+
+
+    // --- INQUIRY HANDLER ---
+    const handleInquirySubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await API.post('/register/inquiry', { ...inquiryData, eventId });
+            setStep('REQUEST_LOGGED');
+        } catch (err) {
+            toast.error(err.response?.data?.error || "Inquiry transmission failed.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // --- 3. RAZORPAY HANDLER ---
     const handleFinalSubmit = async (e) => {
         e.preventDefault();
@@ -168,7 +184,7 @@ const RegisterForm = () => {
             };
 
             const rzp = new window.Razorpay(options);
-             rzp.on('payment.failed', function (response){
+            rzp.on('payment.failed', function (response) {
                 toast.error("Transaction Failed: " + response.error.description);
                 setLoading(false);
             });
@@ -241,11 +257,22 @@ const RegisterForm = () => {
                             <button onClick={() => setStep('FINAL')} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 hover:bg-pink-500 hover:text-white transition-all">
                                 I have a Code <ArrowRight size={18} />
                             </button>
-                            <button onClick={() => setStep('INQUIRY')} className="w-full bg-white/5 border border-white/10 py-4 rounded-2xl font-bold text-gray-300 flex items-center justify-center gap-2">
+                            <button onClick={() => setStep('INQUIRY')} className="w-full bg-white/5 border border-white/10 py-4 rounded-2xl font-bold text-gray-300 hover:bg-pink-500 hover:text-white flex items-center  justify-center gap-2">
                                 I don't have a code <MessageSquare size={18} />
                             </button>
                         </div>
                     </div>
+                )}
+
+                {/* INQUIRY STEP */}
+                {step === 'INQUIRY' && (
+                    <InquiryForm
+                        inquiryData={inquiryData}
+                        setInquiryData={setInquiryData}
+                        onSubmit={handleInquirySubmit}
+                        onBack={() => setStep('CHECK')}
+                        loading={loading}
+                    />
                 )}
 
                 {/* FINAL REGISTRATION FORM */}

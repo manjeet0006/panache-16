@@ -62,11 +62,16 @@ model Event {
   invites EventInvite[]
   teams   Team[]
 
+
   registrationRequests RegistrationRequest[]
 
   // ✅ Judging Setup
   judges   JudgeAssignment[]
   criteria String[]          @default(["General"]) // e.g. ["Creativity", "Technicality"]
+
+  eventDate  DateTime? // ✅ Added: For sorting/calendar logic
+  dateLabel  String? // ✅ Added: For "pleasant" display (e.g. "Feb 14, 10:00 AM")
+  guidelines String[] // Guidelines array
 
   registrationOpen Boolean  @default(true)
   createdAt        DateTime @default(now())

@@ -15,6 +15,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 
 
+
 // Initialize Socket outside component
 // Replace with your actual backend URL
 // App.jsx or Socket config file
@@ -55,6 +56,9 @@ function App() {
 
   return (
     <Router>
+
+
+
       <div className="min-h-screen bg-[#050505] font-sans text-white selection:bg-pink-500/30">
 
         {/* Offline Alert Banner */}
@@ -66,7 +70,7 @@ function App() {
 
         <Header />
 
-        <main className="pt-20">
+        <main className="">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />

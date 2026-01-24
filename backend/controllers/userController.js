@@ -5,7 +5,7 @@ import { prisma } from '../db.js';
  * Direct Login: Username == Password == Secret Code
  */
 export const loginWithSecretCode = async (req, res) => {
-    
+
     const username = req.body.username?.trim().toUpperCase();
     const password = req.body.password?.trim().toUpperCase();
 
@@ -48,7 +48,7 @@ export const loginWithSecretCode = async (req, res) => {
  * Fetch History: Returns all teams for the logged-in code
  */
 export const getMyHistory = async (req, res) => {
-    const { userCode } = req; // Provided by verifyIdentity middleware
+    const { userCode } = req; 
 
     try {
         const teams = await prisma.team.findMany({
@@ -63,13 +63,16 @@ export const getMyHistory = async (req, res) => {
                     select: {
                         name: true,
                         category: true,
-                        eventPrice: true,
-                        allowOutside: true
                     }
                 },
                 members: true,
-                college: { select: { name: true } },
-                // ✅ Added: Get the latest scan status for the dashboard stepper
+                // ✅ CRITICAL FIX: Added isInternal so the frontend knows who is VGU
+                college: { 
+                    select: { 
+                        name: true,
+                        isInternal: true 
+                    } 
+                },
                 entryLogs: {
                     orderBy: { scannedAt: 'desc' },
                     take: 1
@@ -78,10 +81,9 @@ export const getMyHistory = async (req, res) => {
             orderBy: { createdAt: 'desc' }
         });
 
-        // Return empty array if none found (better for frontend mapping)
         res.status(200).json(teams || []);
     } catch (err) {
         console.error("Dashboard Fetch Error:", err);
-        res.status(500).json({ error: "Failed to retrieve registration history." });
+        res.status(500).json({ error: "Failed to retrieve history." });
     }
 };
