@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import {
   Users, ShieldCheck, ScanLine, ChevronLeft, 
-  WifiOff, Server, RefreshCw, XCircle, CheckCircle2, Camera
+  WifiOff, Server, RefreshCw, XCircle, CheckCircle2, Camera, Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // --- CONFIGURATION ---
 const SCAN_DELAY = 2500; 
 const ERROR_DELAY = 2000; 
-const FPS = 10; // Lower FPS is more stable on mobile browsers
+const FPS = 10; 
 
 // --- AUDIO SETUP ---
 const successAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
@@ -32,9 +32,31 @@ const ScannerPage = ({ socket }) => {
   const [cameraError, setCameraError] = useState(null);
 
   // Refs
-  const scannerRef = useRef(null); // Stores the Html5Qrcode instance
+  const scannerRef = useRef(null); 
   const resetTimerRef = useRef(null);
-  const isScanningRef = useRef(false); // Track if camera is actively running
+  const isScanningRef = useRef(false);
+
+  // ---------------------------------------------------------------------------
+  // 🛡️ BLOCK ACCIDENTAL BACK NAVIGATION (The Fix)
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    // 1. Push a dummy state to history so "Back" has something to pop
+    window.history.pushState(null, document.title, window.location.href);
+
+    const handlePopState = (event) => {
+      // 2. When Back is pressed, browser pops state. We immediately push it back.
+      window.history.pushState(null, document.title, window.location.href);
+      
+      // 3. Optional: Tell user they are locked in
+      toast.info("Navigation Locked: Use on-screen buttons", { duration: 1500 });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // ---------------------------------------------------------------------------
   // HELPER FUNCTIONS
@@ -59,14 +81,12 @@ const ScannerPage = ({ socket }) => {
     setTeamDetails(null);
     setIsProcessing(false);
     
-    // Resume scanning if instance exists
     if (scannerRef.current && isScanningRef.current) {
       try { scannerRef.current.resume(); } catch (e) { /* ignore */ }
     }
   };
 
   const handleInitialize = (gateType) => {
-    // Prime audio on user interaction to bypass browser autoplay policy
     successAudio.play().then(() => { 
         successAudio.pause(); 
         successAudio.currentTime = 0; 
@@ -154,22 +174,20 @@ const ScannerPage = ({ socket }) => {
   }, [socket, handleReset, scannerId]);
 
   // ---------------------------------------------------------------------------
-  // SCANNER LIFECYCLE (THE CRITICAL FIX)
+  // SCANNER LIFECYCLE
   // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!isUnlocked) return;
 
-    // Use Html5Qrcode class (Pro API) directly for better control
     const html5QrCode = new Html5Qrcode("reader");
     scannerRef.current = html5QrCode;
 
     const startCamera = async () => {
       try {
-        // Calculate dynamic QR box size based on screen
         const qrBoxSize = Math.min(window.innerWidth, window.innerHeight) * 0.7;
 
         await html5QrCode.start(
-          { facingMode: "environment" }, // FORCE BACK CAMERA
+          { facingMode: "environment" }, 
           {
             fps: FPS,
             qrbox: { width: qrBoxSize, height: qrBoxSize },
@@ -178,22 +196,18 @@ const ScannerPage = ({ socket }) => {
             formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
           },
           (decodedText) => {
-             // SUCCESS CALLBACK
              handleScan(decodedText);
           },
-          (errorMessage) => {
-             // Scanning... (ignore errors frame-by-frame)
-          }
+          (errorMessage) => {}
         );
         isScanningRef.current = true;
       } catch (err) {
         console.error("Camera Start Error:", err);
-        setCameraError("Camera Permission Denied or Not Available. Please ensure you are using HTTPS.");
+        setCameraError("Camera Permission Denied. Use HTTPS or Localhost.");
         isScanningRef.current = false;
       }
     };
 
-    // Tiny delay to ensure DOM is painted
     const timer = setTimeout(startCamera, 300);
 
     return () => {
@@ -211,24 +225,17 @@ const ScannerPage = ({ socket }) => {
   // ACTIONS
   // ---------------------------------------------------------------------------
   const handleScan = (decodedText) => {
-    // 1. Validation
-    if (!isConnected || !isSystemReady) { 
-        toast.warning("System Offline/Loading"); 
-        return; 
-    }
+    if (!isConnected || !isSystemReady) { toast.warning("System Offline/Loading"); return; }
     if (isProcessing) return;
     
-    // 2. Lock State
     setIsProcessing(true); 
     setLastScan(null); 
     setTeamDetails(null);
     
-    // 3. Pause Scanner (Visual Feedback)
     if (scannerRef.current && isScanningRef.current) {
         try { scannerRef.current.pause(); } catch (e) {}
     }
 
-    // 4. Emit
     if (socket) {
         socket.emit("VERIFY_SCAN", { ticketCode: decodedText, scannerId: scannerId });
     } else { 
@@ -239,12 +246,7 @@ const ScannerPage = ({ socket }) => {
 
   const handleLogMember = (member) => {
     if (!socket) return;
-    socket.emit("TOGGLE_MEMBER_STATUS", { 
-        teamId: teamDetails.teamId, 
-        memberId: member.id, 
-        memberName: member.name, 
-        scannerId: scannerId 
-    });
+    socket.emit("TOGGLE_MEMBER_STATUS", { teamId: teamDetails.teamId, memberId: member.id, memberName: member.name, scannerId: scannerId });
   };
 
   // ---------------------------------------------------------------------------
@@ -286,7 +288,7 @@ const ScannerPage = ({ socket }) => {
   return (
     <div className="h-dvh bg-[#050505] text-white flex flex-col md:flex-row relative overflow-hidden font-sans">
       
-      {/* LEFT COLUMN: Camera + Header */}
+      {/* LEFT COLUMN */}
       <div className="w-full md:w-1/2 h-dvh md:h-full flex flex-col p-4 md:p-6 gap-6 relative z-10">
           
           {/* Header */}
@@ -313,11 +315,9 @@ const ScannerPage = ({ socket }) => {
 
           {/* Camera Container */}
           <div className="flex-1 flex items-center justify-center relative w-full">
-             
-             {/* THE CAMERA CARD */}
              <div className="relative w-full max-w-sm md:max-w-md aspect-[3/4] rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl bg-black">
                  
-                 {/* ERROR STATE */}
+                 {/* Error */}
                  {cameraError && (
                     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-6 text-center">
                         <Camera size={40} className="text-red-500 mb-4" />
@@ -326,28 +326,25 @@ const ScannerPage = ({ socket }) => {
                     </div>
                  )}
 
-                 {/* 1. ACTUAL SCANNER MOUNT */}
-                 {/* We force the ID div to fill the container */}
+                 {/* Mount */}
                  <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
                     <div id="reader" className="w-full h-full" />
                  </div>
 
-                 {/* 2. OVERLAY UI (Centered) */}
+                 {/* Overlay */}
                  <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
                       <div className={`w-[75%] aspect-square max-w-[300px] border-2 border-dashed ${scannerId === 'MAIN_GATE' ? 'border-blue-500/30' : 'border-pink-500/30'} rounded-3xl relative shadow-[0_0_100px_rgba(0,0,0,0.5)]`}>
                            <div className={`absolute -top-1 -left-1 w-8 h-8 border-l-4 border-t-4 ${scannerId === 'MAIN_GATE' ? 'border-blue-500' : 'border-pink-500'} rounded-tl-xl`}/>
                            <div className={`absolute -top-1 -right-1 w-8 h-8 border-r-4 border-t-4 ${scannerId === 'MAIN_GATE' ? 'border-blue-500' : 'border-pink-500'} rounded-tr-xl`}/>
                            <div className={`absolute -bottom-1 -left-1 w-8 h-8 border-l-4 border-b-4 ${scannerId === 'MAIN_GATE' ? 'border-blue-500' : 'border-pink-500'} rounded-bl-xl`}/>
                            <div className={`absolute -bottom-1 -right-1 w-8 h-8 border-r-4 border-b-4 ${scannerId === 'MAIN_GATE' ? 'border-blue-500' : 'border-pink-500'} rounded-br-xl`}/>
-                           
-                           {/* Laser */}
                            {!isProcessing && isConnected && isSystemReady && !cameraError && (
                                <div className={`absolute left-2 right-2 h-0.5 ${gateBg} shadow-[0_0_15px_currentColor] animate-scan top-1/2`} />
                            )}
                       </div>
                  </div>
 
-                 {/* 3. LOADER */}
+                 {/* Loader */}
                  {(isProcessing || !isConnected || !isSystemReady) && !cameraError && (
                      <div className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm flex items-center justify-center">
                          <div className="flex flex-col items-center gap-3">
@@ -362,7 +359,7 @@ const ScannerPage = ({ socket }) => {
           </div>
       </div>
 
-      {/* RIGHT COLUMN: Results */}
+      {/* RIGHT COLUMN */}
       <div className={`
           z-50 bg-[#0a0a0a] flex flex-col transition-all duration-300
           ${(teamDetails || lastScan) ? 'fixed inset-0 md:relative md:inset-auto md:w-1/2 md:h-full' : 'hidden md:flex md:relative md:inset-auto md:w-1/2 md:h-full'}
@@ -414,7 +411,6 @@ const ScannerPage = ({ socket }) => {
       </div>
 
       <style>{`
-        /* Force video to fill container */
         #reader video { 
             object-fit: cover !important; 
             width: 100% !important; 
