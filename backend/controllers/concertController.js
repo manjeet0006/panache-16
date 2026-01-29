@@ -228,14 +228,14 @@ export const findGuestTicket = async (req, res) => {
 
 
         
-        const allDisplayableTickets = [];
+        // const allDisplayableTickets = [];
 
 
-        if (allDisplayableTickets.length === 0) {
+        if (concertTickets.length === 0) {
             return res.status(404).json({ error: "No tickets found" });
         }
 
-        res.json(allDisplayableTickets);
+        res.json(concertTickets);
 
     } catch (error) {
         console.error("Find Ticket Error:", error);
