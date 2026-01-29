@@ -13,7 +13,7 @@ export const protect = async (req, res, next) => {
       
       next();
     } catch (error) {
-      res.status(401).json({ error: "Not authorized, token failed" });
+      res.status(401).json({ error: "Not authorized, token failedd" });
     }
   }
 
