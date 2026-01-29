@@ -2,7 +2,7 @@ import { prisma } from "../db.js";
 import { v4 as uuidv4 } from 'uuid';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { ticketCache } from '../index.js';
+import { updateTeamInCache } from '../index.js';
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -173,14 +173,9 @@ export const submitRegistration = async (req, res) => {
         });
 
 
-        // Update Cache
+        // Update Cache in background
         if (result.ticketCode) {
-            ticketCache.set(result.ticketCode, {
-                id: result.id,
-                name: result.teamName,
-                payment: "APPROVED",
-                lastStatus: "EXIT"
-            });
+            updateTeamInCache(result.id).catch(console.error);
         }
 
         return res.status(201).json({

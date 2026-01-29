@@ -75,10 +75,10 @@ const ConcertDashboard = () => {
                     <div className="flex justify-between items-start">
                         <div>
                             <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter">
-                                {ticket.concert.name}
+                                Celebrity Night Pass
                             </h1>
                             <span className="text-[10px] font-bold text-blue-400 uppercase tracking-[0.3em]">
-                                Entry Pass
+                                GOLD VIP Lounge
                             </span>
                         </div>
                         <div className="p-3 bg-blue-500/10 text-blue-400 rounded-2xl border border-blue-500/20">
@@ -133,14 +133,6 @@ const ConcertDashboard = () => {
                     </p>
                 </div>
             </div>
-            
-            <button
-                onClick={handleLogout}
-                className="mt-8 flex items-center gap-2 text-red-500 hover:text-red-400 font-bold text-xs uppercase tracking-widest"
-            >
-                <LogOut size={14} />
-                <span>Sign Out</span>
-            </button>
         </div>
     );
 };

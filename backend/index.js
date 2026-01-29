@@ -3,7 +3,7 @@ import { createServer } from 'http'; // Required for WebSockets
 import { Server } from 'socket.io';   // Required for WebSockets
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { prisma } from './db.js'; 
+import { prisma } from './db.js';
 
 
 import userRoutes from './routes/userRoutes.js'
@@ -13,7 +13,7 @@ import judgingRoutes from './routes/judgingRoutes.js';
 import scanningRoutes from './routes/scanningRoutes.js';
 import metaRoutes from './routes/meta.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import concertRoutes from './routes/concertRoutes.js'; 
+import concertRoutes from './routes/concertRoutes.js';
 // import userRoutes from './routes/userRoutes'
 dotenv.config();
 
@@ -25,7 +25,7 @@ app.set('trust proxy', 1);
 // 1. Configure CORS & Socket.io
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5174",
+  "http://localhost:5175",
   "https://panache.vercel.app",
   "https://panache-16.vercel.app"
 ];
@@ -63,38 +63,115 @@ let cacheReady = false;
 // Hydrate cache on server start
 export async function hydrateCache() {
   try {
+    console.log("🔥 Hydrating cache...");
+    const start = Date.now();
+
+    // 1. Fetch Teams + Members
     const teams = await prisma.team.findMany({
       select: {
         ticketCode: true,
         id: true,
         teamName: true,
         paymentStatus: true,
-        entryLogs: {
-          orderBy: { scannedAt: "desc" },
-          take: 1,
-          select: { type: true }
-        }
+        entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
+        members: { select: { id: true, name: true } }
+      }
+    });
+
+    // 2. Fetch Concert Tickets
+    const concertTickets = await prisma.concertTicket.findMany({
+      select: {
+        arenaCode: true,
+        id: true,
+        guestName: true,
+        isEnterArena: true,
+        tier: true
       }
     });
 
     ticketCache.clear();
 
+    // 3. Load Teams into Cache
     teams.forEach(t => {
       if (t.ticketCode) {
         ticketCache.set(t.ticketCode, {
+          type: 'TEAM',
           id: t.id,
           name: t.teamName,
-          payment: t.paymentStatus, // APPROVED / PENDING / REJECTED
-          lastStatus: t.entryLogs[0]?.type || "EXIT"
+          payment: t.paymentStatus,
+          lastStatus: t.entryLogs[0]?.type || "EXIT",
+          members: t.members // Store member list
+        });
+      }
+    });
+
+    // 4. Load Concert Tickets into Cache
+    concertTickets.forEach(t => {
+      if (t.arenaCode) {
+        ticketCache.set(t.arenaCode, {
+          type: 'CONCERT',
+          id: t.id,
+          name: t.guestName,
+          isEnterArena: t.isEnterArena,
+          tier: t.tier
         });
       }
     });
 
     cacheReady = true;
-    console.log(`⚡ Cache Ready: ${ticketCache.size} teams loaded`);
+    console.log(`⚡ Cache Ready: ${ticketCache.size} tickets in ${Date.now() - start}ms`);
   } catch (err) {
     console.error("❌ Cache hydration failed:", err);
   }
+}
+
+export async function updateTeamInCache(teamId) {
+    try {
+        const t = await prisma.team.findUnique({
+            where: { id: teamId },
+            select: {
+                ticketCode: true, id: true, teamName: true, paymentStatus: true,
+                entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
+                members: { select: { id: true, name: true } }
+            }
+        });
+
+        if (t && t.ticketCode) {
+            ticketCache.set(t.ticketCode, {
+                type: 'TEAM',
+                id: t.id,
+                name: t.teamName,
+                payment: t.paymentStatus,
+                lastStatus: t.entryLogs[0]?.type || "EXIT",
+                members: t.members
+            });
+            console.log(`✅ TEAM CACHE UPDATED: ${t.teamName}`);
+        }
+    } catch (err) {
+        console.error(`❌ Failed to update team cache for ID ${teamId}:`, err);
+    }
+}
+
+export async function updateConcertTicketInCache(ticketId) {
+    try {
+        const t = await prisma.concertTicket.findUnique({
+            where: { id: ticketId },
+            select: { arenaCode: true, id: true, guestName: true, isEnterArena: true, tier: true }
+        });
+
+        if (t && t.arenaCode) {
+            ticketCache.set(t.arenaCode, {
+                type: 'CONCERT',
+                id: t.id,
+                name: t.guestName,
+                isEnterArena: t.isEnterArena,
+                tier: t.tier
+            });
+            console.log(`✅ CONCERT CACHE UPDATED: ${t.guestName}`);
+        }
+    } catch (err) {
+        console.error(`❌ Failed to update concert ticket cache for ID ${ticketId}:`, err);
+    }
 }
 
 await hydrateCache();
@@ -103,65 +180,94 @@ await hydrateCache();
 io.on("connection", (socket) => {
   socket.on("VERIFY_SCAN", async (data) => {
     if (!cacheReady) {
-      return socket.emit("SCAN_ERROR", {
-        error: "System warming up, try again"
-      });
+      return socket.emit("SCAN_ERROR", { error: "System warming up, try again" });
     }
 
     const { ticketCode, scannerId } = data;
-    const start = Date.now();
+    const ticket = ticketCache.get(ticketCode);
 
-    //  O(1) lookup
-    const team = ticketCache.get(ticketCode);
-
-    // Ticket existence
-    if (!team) {
-      return socket.emit("SCAN_ERROR", {
-        error: "Ticket Not Found"
-      });
+    if (!ticket) {
+      return socket.emit("SCAN_ERROR", { error: "Ticket Not Found" });
     }
 
-    // Payment validation
-    if (team.payment !== "APPROVED") {
-      return socket.emit("SCAN_ERROR", {
-        error: "Payment Required",
-        status: team.payment
-      });
+    // --- GATE-SPECIFIC LOGIC ---
+    switch (scannerId) {
+      case 'CELEBRITY_GATE':
+        if (ticket.type !== 'CONCERT') {
+          return socket.emit("SCAN_ERROR", { error: "Only Celebrity Passes Allowed Here" });
+        }
+
+        if (ticket.isEnterArena) {
+          return socket.emit("SCAN_ERROR", { error: "Pass Already Used for Entry" });
+        }
+
+        // Update cache & DB
+        ticket.isEnterArena = true;
+        prisma.concertTicket.update({ where: { id: ticket.id }, data: { isEnterArena: true } }).catch(console.error);
+
+        socket.emit("SCAN_SUCCESS", {
+          action: "ENTRY",
+          teamName: ticket.name, // Guest name
+          message: `${ticket.tier} TIER`
+        });
+        break;
+
+      case 'MAIN_GATE':
+        if (ticket.type === 'TEAM') {
+          // New flow for teams: return member list
+          socket.emit("SCAN_TEAM_DETAILS", {
+            teamName: ticket.name,
+            teamId: ticket.id,
+            members: ticket.members
+          });
+        } else if (ticket.type === 'CONCERT') {
+          // Standard entry/exit for concert passes at main gate
+          const nextAction = ticket.lastStatus === 'ENTRY' ? 'EXIT' : 'ENTRY';
+          ticket.lastStatus = nextAction;
+
+          prisma.entryLog.create({
+            data: { concertTicketId: ticket.id, scannerId, type: nextAction, dayNumber: 1 }
+          }).catch(console.error);
+
+          socket.emit("SCAN_SUCCESS", {
+            action: nextAction,
+            teamName: ticket.name,
+            message: "Concert Pass"
+          });
+        }
+        break;
+
+      default:
+        return socket.emit("SCAN_ERROR", { error: "Invalid Scanner ID" });
     }
+  });
 
-    // ENTRY / EXIT toggle
-    const nextAction =
-      team.lastStatus === "ENTRY" ? "EXIT" : "ENTRY";
+  socket.on("LOG_MEMBER_ENTRY", async ({ teamId, memberId, memberName }) => {
+    // This is a simplified version. A real-world scenario would need to
+    // track individual member entry/exit status. For now, we log an event
+    // for the team, but with the member's name.
+    const team = [...ticketCache.values()].find(t => t.id === teamId && t.type === 'TEAM');
 
-    // Update cache immediately (anti double-scan)
-    team.lastStatus = nextAction;
-
-    // Instant response (FAST)
-    socket.emit("SCAN_SUCCESS", {
-      action: nextAction,
-      teamName: team.name,
-      teamId: team.id,
-      paymentStatus: team.payment,
-      perf: `${Date.now() - start}ms`
-    });
-
-    // Async DB log (non-blocking)
-    prisma.entryLog
-      .create({
+    if (team) {
+      const nextAction = "ENTRY" // Simplified for now
+      prisma.entryLog.create({
         data: {
           teamId: team.id,
-          scannerId: scannerId || "GATE_01",
+          scannerId: "MAIN_GATE_MEMBER_LOG",
           type: nextAction,
-          dayNumber: 1
+          dayNumber: 1,
+          // We could add a field to EntryLog like `notes` to store the member name
         }
-      })
-      .catch(err =>
-        console.error("❌ EntryLog sync failed:", err)
-      );
+      }).catch(console.error);
+
+      socket.emit("MEMBER_LOG_SUCCESS", {
+        message: `${memberName} from ${team.name} recorded.`
+      });
+    }
   });
 });
 
-// 3. REST ROUTES 
+// 3. REST ROUTES
 
 app.use('/api/register', registrationRoutes);
 app.use('/api/judge', judgingRoutes);
@@ -169,13 +275,9 @@ app.use('/api/scan', scanningRoutes); // Keep for history/manual lookups
 app.use('/api/admin', adminRoutes);
 app.use('/api/meta', metaRoutes);
 
-app.use('/api/concert', concertRoutes); 
+app.use('/api/concert', concertRoutes);
 
 app.use('/api/user', userRoutes);
-
-// app.use('/api/user' , userRoutes ); // user routes for login and other features
-
-
 
 app.use(errorHandler);
 

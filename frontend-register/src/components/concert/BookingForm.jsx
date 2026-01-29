@@ -73,7 +73,7 @@ const BookingForm = ({ formData, setFormData, tiers, selectedTier, setSelectedTi
             </button>
             
             <p className="mt-6 text-[8px] text-center font-black uppercase tracking-[0.2em] text-gray-600 flex items-center justify-center gap-2">
-                <ShieldCheck size={10} className="text-green-500"/> Secured Encryption
+                <ShieldCheck size={10} className="text-green-500"/> Secured Razopay
             </p>
         </div>
     </motion.div>

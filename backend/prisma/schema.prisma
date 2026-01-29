@@ -124,10 +124,10 @@ model Team {
   ticketCode String?    @unique // Only generated for external teams
   entryLogs  EntryLog[]
 
-  // 2. Celebrity Night Code (NEW)
-  concertCode String? @unique
-  // Link to specific concert date (Optional, if you want to restrict them to Day 1 vs Day 2)
-  concertId   String?
+  // // 2. Celebrity Night Code (NEW)
+  // concertCode String? @unique
+  // // Link to specific concert date (Optional, if you want to restrict them to Day 1 vs Day 2)
+  // concertId   String?
 
   members Member[]
   scores  Score[]
@@ -310,8 +310,8 @@ model ConcertTicket {
   signature String?
 
   // DUAL QR CODES
-  gateCode  String @unique
   arenaCode String @unique
+  isEnterArena Boolean @default(false)
 
   createdAt DateTime   @default(now())
   entryLogs EntryLog[]

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
 import { Toaster, toast } from 'sonner';
 import { useAuth } from './context/AuthContext';
 
@@ -17,7 +16,7 @@ import TermsAndConditions from './pages/terms_and_conditions';
 import Contact from './pages/Contact';
 import ConcertShowcase from './pages/ConcertShowcase';
 import ConcertBooking from './pages/ConcertBooking';
-import ConcertDashboard from './pages/ConcertDashboard';
+
 import TicketDashboard from './pages/TicketDashboard';
 
 
@@ -28,50 +27,17 @@ import TicketDashboard from './pages/TicketDashboard';
 // Replace with your actual backend URL
 // App.jsx or Socket config file
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 
-const ProtectedRoute = ({ children }) => {
-  const { token, loading } = useAuth();
 
-  if (loading) return null; // Wait for context to load
-  if (!token) return <Navigate to="/login" replace />;
-
-  return children;
-};
-
-
-const socket = io(SOCKET_URL, {
-  transports: ['websocket'],
-  upgrade: false, // Skip the "polling" phase entirely
-  reconnection: true,
-  reconnectionDelay: 500
-});
 function App() {
-  const [isConnected, setIsConnected] = useState(socket.connected);
 
-  useEffect(() => {
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
-    socket.on('connect_error', () => toast.error("Gate Terminal Offline"));
-
-    return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('connect_error');
-    };
-  }, []);
 
   return (
     <Router>
       <div className="min-h-screen bg-[#050505] font-sans text-white selection:bg-pink-500/30">
 
-        {/* Offline Alert Banner */}
-        {!isConnected && (
-          <div className="fixed top-0 left-0 w-full bg-red-600 text-white text-[10px] py-1 text-center font-black uppercase tracking-[0.2em] z-[110] animate-pulse">
-            Connection Lost - Reconnecting...
-          </div>
-        )}
+
 
         <Header />
 
@@ -91,7 +57,7 @@ function App() {
             {/* 2. CONCERT ROUTES (Guest Accessible) */}
             <Route path="/concerts" element={<ConcertShowcase />} />
             <Route path="/concerts/book/:id" element={<ConcertBooking />} />
-            <Route path="/ticket-dashboard" element={<TicketDashboard />} />
+            <Route path="/ticket-dashboard" element={<TicketDashboard />}/>
 
 
 
@@ -100,14 +66,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/concert-dashboard"
-              element={
-                <ProtectedRoute>
-                  <ConcertDashboard />
                 </ProtectedRoute>
               }
             />

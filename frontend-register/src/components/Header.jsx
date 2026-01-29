@@ -111,9 +111,9 @@ const Header = () => {
                 </Link>
               ) : (
                 <>
-                <Link to="/ticket-login" className="text-gray-400 hover:text-white text-[10px] font-black uppercase tracking-[0.2em]">
+                {/* <Link to="/ticket-login" className="text-gray-400 hover:text-white text-[10px] font-black uppercase tracking-[0.2em]">
                   Ticket Login
-                </Link>
+                </Link> */}
                 <Link to="/login" className="w-10 h-10 bg-pink-500/10 border border-pink-500/20 text-pink-500 rounded-xl flex items-center justify-center hover:bg-pink-500 hover:text-white transition-all">
                   <LogIn size={18} />
                 </Link>
@@ -184,9 +184,9 @@ const Header = () => {
                     <Link to="/login" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 w-full py-3.5 bg-pink-600 text-white font-bold uppercase text-xs tracking-[0.2em] rounded-xl">
                       <LogIn size={16} /> Login Access
                     </Link>
-                    <Link to="/ticket-login" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 w-full py-3.5 bg-blue-600/20 text-blue-400 font-bold uppercase text-xs tracking-[0.2em] rounded-xl">
+                    {/* <Link to="/ticket-login" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-2 w-full py-3.5 bg-blue-600/20 text-blue-400 font-bold uppercase text-xs tracking-[0.2em] rounded-xl">
                       Ticket Login
-                    </Link>
+                    </Link> */}
                   </div>
                 )}
               </div>

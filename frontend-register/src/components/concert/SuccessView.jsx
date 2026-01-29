@@ -30,23 +30,16 @@ const SuccessView = ({ ticket, concert, onOpenGate, onOpenArena }) => {
           YOU'RE <span className="text-outline pl-2 text-green-500">IN.</span>
         </h1>
         
-        {/* <p className="text-gray-400 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs mb-12">
+        <p className="text-gray-400 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs mb-12">
           Digital passes dispatched to <span className="text-white underline decoration-green-500 underline-offset-4">{ticket.guestEmail}</span>
-        </p> */}
+        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg mx-auto">
-          <button 
-            onClick={onOpenGate}
-            className="group bg-white text-black h-20 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:scale-105 transition-transform"
-          >
-            <Ticket size={18} /> View Gate Pass
-          </button>
-
+        <div className="flex justify-center gap-6 w-full max-w-lg mx-auto">
           <button 
             onClick={onOpenArena}
-            className="group bg-yellow-500 text-black h-20 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg shadow-yellow-500/30"
+            className="group bg-yellow-500 text-black h-20 px-5 rounded-2xl font-black uppercase tracking-widest text-[12px] flex items-center justify-center gap-3 hover:scale-105 transition-transform shadow-lg shadow-yellow-500/30"
           >
-            <Music size={18} /> View Arena Pass
+            <Music size={18} /> View Celebrity Night Pass
           </button>
         </div>
         
@@ -54,7 +47,7 @@ const SuccessView = ({ ticket, concert, onOpenGate, onOpenArena }) => {
           onClick={() => navigate('/')}
           className="mt-16 text-gray-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest underline decoration-pink-500 underline-offset-8"
         >
-          Return to Hub
+          Return to Home
         </button>
       </motion.div>
     </div>

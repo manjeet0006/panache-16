@@ -2,9 +2,11 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../db.js';
+import { updateConcertTicketInCache } from '../index.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -137,7 +139,6 @@ export const verifyGuestPayment = async (req, res) => {
         }
         
         // D. Generate Unique QR Codes
-        const gateCode = `PAN-${uuidv4().slice(0, 6).toUpperCase()}`;
         const arenaCode = `STAR-${uuidv4().slice(0, 6).toUpperCase()}`;
 
         // E. Create Ticket and Update Counts in an Atomic Transaction
@@ -173,7 +174,6 @@ export const verifyGuestPayment = async (req, res) => {
                     orderId: razorpay_order_id,
                     paymentId: razorpay_payment_id,
                     signature: razorpay_signature,
-                    gateCode: gateCode,
                     arenaCode: arenaCode
                 }
             });
@@ -189,6 +189,8 @@ export const verifyGuestPayment = async (req, res) => {
             console.error("Failed to update sold out status in background:", err);
         });
 
+        // NEW: Update cache in background
+        updateConcertTicketInCache(ticket.id).catch(console.error);
 
         console.log(`🎟️ Ticket Generated for ${name} (${tier})`);
 
