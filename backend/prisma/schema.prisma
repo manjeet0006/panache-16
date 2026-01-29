@@ -62,7 +62,6 @@ model Event {
   invites EventInvite[]
   teams   Team[]
 
-
   registrationRequests RegistrationRequest[]
 
   // ✅ Judging Setup
@@ -125,6 +124,11 @@ model Team {
   ticketCode String?    @unique // Only generated for external teams
   entryLogs  EntryLog[]
 
+  // 2. Celebrity Night Code (NEW)
+  concertCode String? @unique
+  // Link to specific concert date (Optional, if you want to restrict them to Day 1 vs Day 2)
+  concertId   String?
+
   members Member[]
   scores  Score[]
 
@@ -182,16 +186,25 @@ model Score {
   @@unique([teamId, judgeId])
 }
 
+// 2. The Shared Entry Log (Tracks movement for EVERYONE)
 model EntryLog {
   id        String   @id @default(uuid())
-  teamId    String
-  team      Team     @relation(fields: [teamId], references: [id])
   scannedAt DateTime @default(now())
-  scannerId String // ID of the volunteer/admin scanning
-  dayNumber Int // 1 to 7
+  scannerId String // ID of the volunteer scanning
+  dayNumber Int // 1, 2, 3
   type      LogType // ENTRY or EXIT
 
-  @@index([teamId, scannedAt(sort: Desc)])
+  // ✅ OPTION A: It's a Team Member (Participant)
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id])
+
+  // ✅ OPTION B: It's a Concert Guest (New)
+  concertTicketId String?
+  concertTicket   ConcertTicket? @relation(fields: [concertTicketId], references: [id])
+
+  // Indexes for fast lookup
+  @@index([teamId, scannedAt])
+  @@index([concertTicketId, scannedAt])
 }
 
 model RegistrationRequest {
@@ -241,4 +254,71 @@ enum InquiryStatus {
   REGISTERED
   REJECTED
   CLOSED
+}
+
+// ✅ NEW SECTION: CONCERT & INDIVIDUAL USERS
+
+// 2. The Concert Event (Day 1, Day 2, etc.)
+model Concert {
+  id         String   @id @default(uuid())
+  artistName String // e.g., "Arijit Singh"
+  dayLabel   String // e.g., "Day 1 - Feb 12"
+  date       DateTime
+  imageUrl   String // URL to artist photo
+
+  // Pricing config (Stored as JSON for flexibility)
+  // Example: { "SILVER": 499, "GOLD": 999 }
+  tierDetails ConcertTierDetails[]
+
+  soldOut   Boolean         @default(false)
+  tickets   ConcertTicket[]
+  createdAt DateTime        @default(now())
+}
+
+model ConcertTierDetails {
+  id          String     @id @default(uuid())
+  concertId   String
+  concert     Concert    @relation(fields: [concertId], references: [id])
+  tier        TicketTier
+  price       String
+  ticketLimit Int
+  ticketsSold Int        @default(0)
+
+  @@unique([concertId, tier])
+}
+
+// 3. The Ticket Itself
+model ConcertTicket {
+  id String @id @default(uuid())
+
+  // Guest Details
+  guestName  String
+  guestEmail String
+  guestPhone String 
+
+  concertId String
+  concert   Concert @relation(fields: [concertId], references: [id])
+
+  tier      TicketTier
+  pricePaid String
+
+  // ✅ FIX: Mark these as @unique to prevent duplicate tickets
+  paymentId String   @unique
+  orderId   String   @unique
+  
+  // ✅ FIX: Add Signature for security (audit trails)
+  signature String?
+
+  // DUAL QR CODES
+  gateCode  String @unique
+  arenaCode String @unique
+
+  createdAt DateTime   @default(now())
+  entryLogs EntryLog[]
+}
+
+enum TicketTier {
+  SILVER
+  GOLD
+  PLATINUM
 }

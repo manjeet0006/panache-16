@@ -53,6 +53,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        fontFamily: {
+        // Now 'font-sans' defaults to Satoshi (cleaner than Inter)
+        sans: ['Satoshi', 'sans-serif'],
+        
+        // Use 'font-display' for your big headers
+        display: ['Clash Display', 'sans-serif'],
+      },
       },
       borderRadius: {
         lg: "var(--radius)",

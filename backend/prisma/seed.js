@@ -4,19 +4,38 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🧹 Wiping Database...");
 
-  // Order: Child models first to avoid Foreign Key violations
+  // ==========================================
+  // 1. CLEANUP (Children FIRST, Parents LAST)
+  // ==========================================
+  
+  // 1. Logs & Transactions (Depend on Tickets/Teams)
   await prisma.entryLog.deleteMany({});
   await prisma.score.deleteMany({});
+  
+  // 2. Tickets & Tiers (Depend on Concerts)
+  await prisma.concertTicket.deleteMany({});       // <--- Delete Children First
+  await prisma.concertTierDetails.deleteMany({});  // <--- Delete Children First
+  
+  // 3. Team & Registration (Depend on Events/Colleges)
   await prisma.member.deleteMany({});
+  await prisma.registrationRequest.deleteMany({});
+  await prisma.judgeAssignment.deleteMany({});
   await prisma.eventInvite.deleteMany({});
   await prisma.team.deleteMany({});
-  await prisma.registrationRequest.deleteMany({});
+  
+  // 4. Core Models (The Parents)
+  await prisma.concert.deleteMany({});             // <--- Delete Parent Last
+  await prisma.event.deleteMany({});
+  await prisma.judge.deleteMany({});
   await prisma.department.deleteMany({});
   await prisma.college.deleteMany({});
-  await prisma.event.deleteMany({});
   await prisma.admin.deleteMany({});
-  await prisma.judgeAssignment.deleteMany({});
-  await prisma.judge.deleteMany({});
+
+  console.log("✨ Database wiped. Starting Seed...");
+
+  // ==========================================
+  // 2. SEED CORE DATA
+  // ==========================================
 
   console.log("🏫 Seeding Colleges...");
   const vgu = await prisma.college.create({
@@ -50,7 +69,10 @@ async function main() {
     });
   }
 
-  console.log("🎟️ Seeding High-Fidelity Events...");
+  // ==========================================
+  // 3. SEED EVENTS
+  // ==========================================
+  console.log("🎟️ Seeding Events...");
 
   const events = [
     {
@@ -60,12 +82,7 @@ async function main() {
       price: "300",
       out: true,
       date: "Feb 12, 09:00 AM",
-      rules: [
-        "Teams must consist of 2-4 members.",
-        "Problem statements will be released on the spot.",
-        "Participants must bring their own laptops and chargers.",
-        "Use of pre-built templates is strictly prohibited."
-      ]
+      rules: ["Teams: 2-4 members", "Bring laptops"]
     },
     {
       id: 'evt_fashion',
@@ -74,12 +91,7 @@ async function main() {
       price: "500",
       out: true,
       date: "Feb 14, 06:00 PM",
-      rules: [
-        "Theme: Ethnic Fusion or Cyberpunk.",
-        "Time limit: 8 minutes including setup.",
-        "Vulgarity in attire or performance leads to disqualification.",
-        "Carry your own music in a Pendrive (MP3 format)."
-      ]
+      rules: ["Theme: Ethnic Fusion", "Time: 8 mins"]
     },
     {
       id: 'evt_robowar',
@@ -88,12 +100,7 @@ async function main() {
       price: "400",
       out: true,
       date: "Feb 13, 11:00 AM",
-      rules: [
-        "Bot weight must not exceed 15kg.",
-        "Use of fire, liquids, or explosives is prohibited.",
-        "Match duration: 3 minutes per round.",
-        "Safety goggles are mandatory for all team members."
-      ]
+      rules: ["Max Weight: 15kg", "No explosives"]
     },
     {
       id: 'evt_dance',
@@ -102,12 +109,7 @@ async function main() {
       price: "150",
       out: true,
       date: "Feb 12, 02:00 PM",
-      rules: [
-        "All dance styles are welcome.",
-        "Performance duration: 2 to 3 minutes.",
-        "Costumes should be appropriate for a campus environment.",
-        "Judging based on rhythm, expression, and stage presence."
-      ]
+      rules: ["Duration: 2-3 mins", "Decent costumes"]
     },
     {
       id: 'evt_talent',
@@ -116,12 +118,7 @@ async function main() {
       price: "0",
       out: false,
       date: "Feb 13, 04:00 PM",
-      rules: [
-        "Exclusive to VGU Students only.",
-        "Showcase any talent: Magic, Comedy, or Mimicry.",
-        "Time limit: 5 minutes per department.",
-        "Physical ID cards must be presented at the stage entrance."
-      ]
+      rules: ["VGU Students Only", "ID Card Mandatory"]
     }
   ];
 
@@ -137,28 +134,22 @@ async function main() {
         minPlayers: 1,
         maxPlayers: 10,
         dateLabel: e.date,
-        eventDate: new Date(2026, 1, 12), // Placeholder date
+        eventDate: new Date(), 
         guidelines: e.rules
       }
     });
   }
 
+  // ==========================================
+  // 4. SEED ADMIN & INVITES
+  // ==========================================
   console.log("🔑 Generating Secure Invite Codes...");
   const globalEvents = events.filter(e => e.out);
   for (const ev of globalEvents) {
     const prefix = ev.name.substring(0, 3).toUpperCase();
-    
-    // Create 5 External (Paid) Codes
-    for (let i = 1; i <= 5; i++) {
-      await prisma.eventInvite.create({
-        data: { code: `EXT-${prefix}-${100 + i}`, eventId: ev.id }
-      });
-    }
-
-    // Create 3 Internal (Dept) Codes for Global Events
     for (let i = 1; i <= 3; i++) {
       await prisma.eventInvite.create({
-        data: { code: `VGU-${prefix}-${500 + i}`, eventId: ev.id }
+        data: { code: `EXT-${prefix}-${100 + i}`, eventId: ev.id }
       });
     }
   }
@@ -176,6 +167,103 @@ async function main() {
     data: { judgeId: judge.id, eventId: 'evt_hackathon' }
   });
 
+
+  // ==========================================
+  // 5. SEED CONCERTS (Full Lineup)
+  // ==========================================
+  console.log('🎸 Seeding Concert Data...');
+
+  // 1. DIVINE
+  await prisma.concert.create({
+    data: {
+      id: "concert_day_1",
+      artistName: "Divine",
+      dayLabel: "Day 1 - Gully Gang",
+      date: new Date('2026-02-12T19:00:00Z'),
+      imageUrl: "https://im.rediff.com/movies/2019/feb/13gully-boy1.jpg",
+      tierDetails: {
+        create: [
+          { tier: 'SILVER', price: "499", ticketLimit: 500 },
+          { tier: 'GOLD', price: "999", ticketLimit: 200 },
+          { tier: 'PLATINUM', price: "2499", ticketLimit: 50 },
+        ]
+      }
+    }
+  });
+
+  // 2. ARIJIT SINGH
+  await prisma.concert.create({
+    data: {
+      id: "concert_day_2",
+      artistName: "Arijit Singh",
+      dayLabel: "Day 2 - Soulful Night",
+      date: new Date('2026-02-13T20:00:00Z'),
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Arijit_Singh.jpg",
+      tierDetails: {
+        create: [
+          { tier: 'SILVER', price: "799", ticketLimit: 800 },
+          { tier: 'GOLD', price: "1499", ticketLimit: 300 },
+          { tier: 'PLATINUM', price: "3999", ticketLimit: 100 },
+        ]
+      }
+    }
+  });
+
+  // 3. KING
+  await prisma.concert.create({
+    data: {
+      id: "concert_day_3",
+      artistName: "King",
+      dayLabel: "Day 3 - Champagne Talk",
+      date: new Date('2026-02-14T19:00:00Z'),
+      imageUrl: "https://i.scdn.co/image/ab6761610000e5eb5b4fa9d592b2d9092eb68be7",
+      tierDetails: {
+        create: [
+          { tier: 'SILVER', price: "699", ticketLimit: 400 },
+          { tier: 'GOLD', price: "1299", ticketLimit: 200 },
+          { tier: 'PLATINUM', price: "2999", ticketLimit: 50 },
+        ]
+      }
+    }
+  });
+
+  // 4. DARSHAN RAVAL
+  await prisma.concert.create({
+    data: {
+      id: "concert_day_4",
+      artistName: "Darshan Raval",
+      dayLabel: "Day 4 - Blue Family Live",
+      date: new Date('2026-02-15T19:00:00Z'),
+      imageUrl: "https://i.scdn.co/image/ab6761610000e5eb4e4a7d7d7d7d7d7d7d7d7d7d",
+      tierDetails: {
+        create: [
+          { tier: 'SILVER', price: "599", ticketLimit: 400 },
+          { tier: 'GOLD', price: "1199", ticketLimit: 200 },
+          { tier: 'PLATINUM', price: "2599", ticketLimit: 50 },
+        ]
+      }
+    }
+  });
+
+  // 5. NUCLEYA
+  await prisma.concert.create({
+    data: {
+      id: "concert_day_5",
+      artistName: "Nucleya",
+      dayLabel: "Day 5 - Bass Rani Finale",
+      date: new Date('2026-02-16T20:00:00Z'),
+      imageUrl: "https://i.scdn.co/image/ab6761610000e5eb9c2d7f7d7d7d7d7d7d7d7d7d",
+      tierDetails: {
+        create: [
+          { tier: 'SILVER', price: "499", ticketLimit: 500 },
+          { tier: 'GOLD', price: "999", ticketLimit: 300 },
+          { tier: 'PLATINUM', price: "1999", ticketLimit: 100 },
+        ]
+      }
+    }
+  });
+
+  console.log('✅ Concerts Seeded');
   console.log("🏁 Seed complete! Panache Era 2026 is ready.");
 }
 

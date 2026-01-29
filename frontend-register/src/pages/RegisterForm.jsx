@@ -204,6 +204,7 @@ const RegisterForm = () => {
         const registrationPromise = API.post("/register/register-team", payload);
 
         toast.promise(registrationPromise, {
+
             loading: 'Verifying data and securing your slot...',
             success: (res) => {
                 flushSync(() => {
@@ -232,7 +233,7 @@ const RegisterForm = () => {
         );
     }
 
-    console.log(registrationSuccessData);
+    console.log(registrationSuccessData + ' registration data');
 
     // Optimized render guard
     if (step === 'SUCCESS' && registrationSuccessData?.ticketCode) {
@@ -240,6 +241,8 @@ const RegisterForm = () => {
             <SuccessScreen
                 data={registrationSuccessData}
                 eventName={event?.name}
+                teamName={formData.teamName}
+                teamSize={formData.members.length}
                 isVgu={isVgu}
                 onHome={() => navigate('/')}
             />
@@ -322,7 +325,7 @@ const RegisterForm = () => {
                                             {colleges.filter(c => !c.isInternal).map(c => (
                                                 <option key={c.id} value={c.id}>{c.name}</option>
                                             ))}
-                                            <option value="other">Other (Not Listed)</option>
+                                            {/* <option value="other">Other (Not Listed)</option> */}
                                         </select>
 
                                         {/* CONDITIONAL INPUT: Shows only when "Other" is selected */}

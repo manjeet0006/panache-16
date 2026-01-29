@@ -1,1 +1,21 @@
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@200,400,500,600,700&f[]=satoshi@300,400,500,700&display=swap');
 @import "tailwindcss";
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* In your globals.css */
+
+:root {
+  /* Headings: Sharp, structural, high-fashion */
+  --font-display: 'Clash Display', sans-serif;
+  /* Body: Clean but with more character than Inter */
+  --font-body: 'Satoshi', sans-serif;
+}

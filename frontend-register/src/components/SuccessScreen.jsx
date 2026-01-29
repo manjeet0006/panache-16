@@ -2,22 +2,22 @@ import React from 'react';
 import QRCode from 'react-qr-code';
 import { Download, MapPin, Calendar, Info, CheckCircle, Home, CreditCard, ShieldCheck, Zap } from 'lucide-react';
 
-const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
-    const team = data; 
+const SuccessScreen = ({ data, eventName, teamName, teamSize, isVgu, onHome }) => {
+    const team = data;
     const ticketCode = team?.ticketCode || "PENDING";
 
     if (!team) return null;
 
     return (
-        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 animate-in fade-in duration-700 overflow-hidden relative selection:bg-pink-500/30">
-            
+        <div className="min-h-screen pt-15 bg-[#050505] flex flex-col items-center justify-center p-4 animate-in fade-in duration-700 overflow-hidden relative selection:bg-pink-500/30">
+
             {/* Background Texture - Adds a 'Pro' feel */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-                 style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3%3Cfilter id='noiseFilter'%3%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3%3C/filter%3%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3%3C/svg%3")` }}>
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3%3Cfilter id='noiseFilter'%3%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3%3C/filter%3%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3%3C/svg%3")` }}>
             </div>
 
             {/* Header: Centered & Minimal */}
-            <div className="text-center mb-6 relative z-10">
+            <div className="text-center mb-6 mt-7 relative z-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 mb-4">
                     <CheckCircle size={12} />
                     <span className="text-[9px] font-black uppercase tracking-[0.2em]">Transaction Verified</span>
@@ -30,28 +30,35 @@ const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
             <div className="relative w-full max-w-[330px] z-10 group">
                 {/* PRO TICKET SHAPE */}
                 <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.7)] transform transition-transform group-hover:scale-[1.01] duration-500">
-                    
+
                     {/* Header: Dark Stealth Mode */}
                     <div className="bg-[#000] p-6 pb-5 text-white relative overflow-hidden">
                         {/* Subtle Holographic Line */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-50"></div>
-                        
+
                         <div className="flex justify-between items-center mb-6">
                             <div className="flex items-center gap-2">
                                 <Zap size={14} className="text-pink-500 fill-pink-500" />
                                 <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-400">Official Entry</span>
                             </div>
-                            <ShieldCheck size={18} className="text-white opacity-20"/>
+                            <ShieldCheck size={18} className="text-white opacity-20" />
                         </div>
 
                         <h2 className="text-[26px] font-black uppercase italic tracking-tighter leading-none mb-2 break-words">
                             {eventName}
                         </h2>
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            <p className="text-[12px] font-black uppercase tracking-widest text-pink-500 truncate">
-                                {team.teamName || "The Squad"}
-                            </p>
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                <p className="text-[12px] font-black uppercase tracking-widest text-pink-500 truncate">
+                                    {teamName || "The Squad"}
+                                </p>
+                            </div>
+                            {teamSize && (
+                                <p className="text-[10px] font-bold text-green-400 uppercase">
+                                    {teamSize} {teamSize > 1 ? 'Members' : 'Member'}
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -68,8 +75,8 @@ const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
                     </div>
 
                     {/* Content Section */}
-                    <div className="px-6 pb-6 pt-2 flex flex-col items-center">
-                        
+                    <div className="px-6 pb-3 pt-1 flex flex-col items-center">
+
                         {isVgu ? (
                             /* VGU PRO CONTENT */
                             <div className="w-full py-4 flex flex-col items-center">
@@ -79,7 +86,7 @@ const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
                                         <CreditCard size={38} className="text-pink-600" />
                                     </div>
                                 </div>
-                                <div className="text-center mb-5">
+                                <div className="text-center mb-4">
                                     <h3 className="text-[15px] font-black text-black uppercase italic leading-none mb-2">VGU Physical ID</h3>
                                     <p className="text-[8px] text-gray-400 font-black uppercase tracking-[0.2em] leading-relaxed">
                                         No digital scan required. <br /> Present Student Card at Desk.
@@ -89,11 +96,31 @@ const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
                         ) : (
                             /* GLOBAL PRO CONTENT */
                             <>
-                                <div className="bg-gray-50 p-4 rounded-[2.5rem] border border-gray-100 mb-4 mt-2 shadow-inner group-hover:border-pink-500/20 transition-colors">
-                                    <QRCode value={ticketCode} size={130} fgColor="#000" qrStyle="dots" />
+                                {/* QR Container */}
+                                <div className="relative bg-white p-4 rounded-[2rem] border-2 border-dashed border-gray-200 mb-6 mt-2 shadow-sm flex items-center justify-center group hover:border-gray-400 transition-colors">
+
+                                    <QRCode
+                                        value={ticketCode || "NO_DATA"}
+                                        size={140}
+                                        fgColor="#000000"
+                                        bgColor="transparent"
+                                        level="Q"
+                                    />
+
+                                    {/* Center Logo Overlay */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <div className="w-11 h-11 bg-white rounded-lg flex items-center justify-center p-1 border-2 border-white shadow-sm">
+                                            <div className="w-full h-full bg-black rounded-md flex items-center justify-center">
+                                                <span className="text-[9px] font-black text-white leading-none">P16</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Text Code Display */}
                                 <div className="text-center mb-6">
-                                    <p className="text-[18px] font-black text-black tracking-[0.3em] font-mono leading-none">
+                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Entry Code</p>
+                                    <p className="text-2xl font-black text-black tracking-[0.3em] font-mono leading-none break-all">
                                         {ticketCode}
                                     </p>
                                 </div>
@@ -105,15 +132,15 @@ const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/50">
                                 <Calendar size={14} className="text-pink-600" />
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Date</span>
-                                    <span className="text-[10px] font-black text-black uppercase">Feb 12-14</span>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Date</span>
+                                    <span className="text-[12px] font-black text-black uppercase">Feb 12-14</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/50">
                                 <MapPin size={14} className="text-pink-600" />
                                 <div className="flex flex-col">
-                                    <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Venue</span>
-                                    <span className="text-[10px] font-black text-black uppercase">Main Arena</span>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Venue</span>
+                                    <span className="text-[12px] font-black text-black uppercase">Main Arena</span>
                                 </div>
                             </div>
                         </div>
@@ -121,9 +148,9 @@ const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
                         {/* Micro Disclaimer */}
                         <div className="w-full flex items-start gap-3 p-3 bg-pink-500/[0.03] rounded-2xl border border-pink-500/10">
                             <Info size={14} className="text-pink-600 shrink-0" />
-                            <p className="text-[8px] text-pink-900 font-bold leading-normal uppercase tracking-tight">
-                                {isVgu 
-                                    ? "Verification is manual. Keep your VGU ID handy throughout the event." 
+                            <p className="text-[10px] text-pink-900 font-bold leading-normal uppercase tracking-tight">
+                                {isVgu
+                                    ? "Verification is manual. Keep your VGU ID handy throughout the event."
                                     : "Unique squad pass. Screenshots with low brightness may fail at the gate."}
                             </p>
                         </div>
@@ -146,7 +173,7 @@ const SuccessScreen = ({ data, eventName, isVgu, onHome }) => {
                     </button>
                 </div>
             </div>
-            
+
             {/* Minimal Brand Footer */}
             <div className="mt-10 flex items-center gap-4 opacity-20">
                 <div className="h-px w-8 bg-white"></div>

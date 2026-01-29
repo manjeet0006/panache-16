@@ -1,500 +1,409 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-    ShieldAlert, FileText, Users, Gavel, AppWindow, 
-    CreditCard, MapPin, ArrowLeft, Music, Palette, 
-    Trophy, Gamepad2, Info, Smartphone, Scale, 
-    Zap, Mic, Camera, BookOpen, Scissors, Activity, 
-    Terminal, Flag, Menu, X
+    motion,
+    useScroll,
+    useSpring
+} from "framer-motion";
+import { 
+    ArrowLeft, ArrowUpRight, Music, Palette, 
+    Trophy, Gamepad2, Smartphone, Scale, 
+    Zap, Activity, 
+    Hash, Star
 } from 'lucide-react';
 
-/**
- * PANACHE S-15: MASTER LEGAL ARCHIVE & PARTICIPANT PROTOCOL
- * DATE: 19th-22nd March 2026
- * MOTTO: Together We Perform, Together We Achieve
- * VERSION: 2.4.0 (Mobile Optimized)
- */
+/* ==========================================================================
+   HELPER COMPONENTS
+   ========================================================================== */
 
-const TermsAndConditions = () => {
-    // UI State for expanding sections
-    const [activeSection, setActiveSection] = useState(null);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // New state for mobile nav
-
-    const toggleSection = (section) => {
-        setActiveSection(activeSection === section ? null : section);
+const ActiveScrollReveal = ({ children, delay = 0, width = "100%", direction = "up" }) => {
+    const directions = {
+        up: { y: 50 },
+        down: { y: -50 },
+        left: { x: 50 },
+        right: { x: -50 },
     };
-
-    // Scroll handler for smooth navigation
-    const scrollToSection = (id) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-            setMobileMenuOpen(false);
-        }
-    };
-
-    const sections = ['Preamble', 'Framework', 'Departments', 'Events', 'E-Sports', 'Legal', 'Contact'];
 
     return (
-        // Added overflow-x-hidden to prevent horizontal scroll from large text
-        <div className="min-h-screen bg-[#050505] text-gray-400 font-sans selection:bg-pink-500/30 selection:text-white pb-32 overflow-x-hidden">
-            
-            {/* --- NAVIGATION HEADER --- */}
-            <div className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <Link to="/" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-pink-500 transition-all group">
-                        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> 
-                        <span className="hidden sm:inline">Return_to_Portal</span>
-                        <span className="sm:hidden">Back</span>
-                    </Link>
+        <motion.div
+            initial={{ opacity: 0, ...directions[direction], scale: 0.95, filter: "blur(8px)" }}
+            whileInView={{ opacity: 1, x: 0, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, ...directions[direction], scale: 0.95, filter: "blur(8px)" }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.8, delay: delay, ease: [0.16, 1, 0.3, 1] }}
+            style={{ width }}
+        >
+            {children}
+        </motion.div>
+    );
+};
+
+const NoiseOverlay = () => (
+    <div className="fixed inset-0 z-50 pointer-events-none opacity-[0.035] mix-blend-overlay">
+        <svg className="w-full h-full">
+            <filter id="noiseFilter">
+                <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+            </filter>
+            <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+        </svg>
+    </div>
+);
+
+const PleasantCard = ({ children, className = "" }) => {
+    return (
+        <motion.div
+            whileHover={{ y: -4 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className={`relative p-8 rounded-3xl bg-[#080808] border border-white/5 group transition-colors duration-500 hover:border-white/15 ${className}`}
+        >
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative h-full z-10">{children}</div>
+        </motion.div>
+    );
+};
+
+/* ==========================================================================
+   NEW COMPONENT: HOLOGRAPHIC DEPARTMENT GRID
+   ========================================================================== */
+
+const DepartmentGrid = () => {
+    // Data migrated from original table with added styling attributes
+    const departments = [
+        { id: "01", name: "Physics & R&D", callsign: "Creative Titans", theme: "Sikkim", accent: "from-blue-500 to-indigo-600" },
+        { id: "02", name: "Forensic Science", callsign: "Mystery Masters", theme: "Gujarat", accent: "from-amber-500 to-orange-600" },
+        { id: "03", name: "Mgmt Studies", callsign: "Mgmt Marvels", theme: "Kashmir", accent: "from-emerald-400 to-cyan-500" },
+        { id: "04", name: "Engineering", callsign: "Tech Titans", theme: "Assam", accent: "from-red-500 to-rose-600" },
+        { id: "05", name: "Humanities", callsign: "Kaleidoscope", theme: "Telangana", accent: "from-violet-500 to-purple-600" },
+        { id: "06", name: "Paramedical", callsign: "Lab Legends", theme: "Bihar", accent: "from-lime-400 to-green-500" },
+        { id: "07", name: "Pharmacy", callsign: "Pharma Phrenzy", theme: "Kerala", accent: "from-teal-400 to-emerald-600" },
+        { id: "08", name: "Law", callsign: "Legal Eagle", theme: "Haryana", accent: "from-slate-400 to-slate-600" },
+        { id: "09", name: "Design / Arch", callsign: "CODE Zilla", theme: "Odisha", accent: "from-pink-500 to-fuchsia-600" },
+        { id: "10", name: "Computer App", callsign: "Logics Warriors", theme: "Manipur", accent: "from-cyan-400 to-blue-500" },
+        { id: "11", name: "Healthcare", callsign: "Physio Brigade", theme: "Himachal", accent: "from-sky-400 to-indigo-500" },
+        { id: "12", name: "ABM", callsign: "AMB Next Wave", theme: "Chhattisgarh", accent: "from-orange-400 to-red-500" },
+        { id: "13", name: "Agriculture", callsign: "OG! Ags", theme: "West Bengal", accent: "from-green-500 to-emerald-700" },
+        { id: "14", name: "B.Tech (1st)", callsign: "Tech Phoenix", theme: "Maharashtra", accent: "from-yellow-400 to-orange-500" },
+        { id: "15", name: "CSE", callsign: "405 Found", theme: "Punjab", accent: "from-rose-500 to-pink-600" },
+    ];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
+            {departments.map((dept, i) => (
+                <motion.div
+                    key={dept.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: i * 0.05 }}
+                    viewport={{ once: true }}
+                    className="group relative h-40 bg-[#080808] rounded-2xl border border-white/5 overflow-hidden hover:border-white/20 transition-all duration-300"
+                >
+                    {/* Hover Gradient Background */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${dept.accent} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
                     
-                    <div className="flex items-center gap-4">
-                         {/* Mobile Menu Toggle */}
-                         <button 
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="lg:hidden p-2 text-white bg-white/5 rounded-lg border border-white/10"
-                        >
-                            {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
-                        </button>
+                    <div className="relative p-5 h-full flex flex-col justify-between z-10">
+                        {/* Header */}
+                        <div className="flex justify-between items-start">
+                            <span className="font-mono text-[10px] text-white/30 tracking-widest border border-white/10 px-2 py-1 rounded-md">
+                                NODE_{dept.id}
+                            </span>
+                            <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white transition-colors" />
+                        </div>
 
-                        <div className="flex items-center gap-3">
-                            <span className="hidden md:inline text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 italic">Sector // Cultural_Registry</span>
-                            <div className="h-1.5 w-1.5 rounded-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,1)] animate-pulse" />
+                        {/* Info */}
+                        <div>
+                            <h3 className="text-white font-display font-bold leading-tight mb-1 group-hover:translate-x-1 transition-transform duration-300">
+                                {dept.name}
+                            </h3>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-wider group-hover:text-gray-300 transition-colors">
+                                {dept.callsign}
+                            </p>
+                        </div>
+
+                        {/* Footer (Theme) */}
+                        <div className="absolute bottom-0 right-0 p-5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                            <span className={`text-[10px] font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r ${dept.accent}`}>
+                                {dept.theme}
+                            </span>
                         </div>
                     </div>
-                </div>
+                    
+                    {/* Tech Line Decoration */}
+                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                </motion.div>
+            ))}
+        </div>
+    );
+};
 
-                {/* --- MOBILE QUICK NAV (Dropdown) --- */}
-                {mobileMenuOpen && (
-                    <div className="lg:hidden absolute top-full left-0 w-full bg-[#0a0a0a] border-b border-white/10 p-4 shadow-2xl animate-in slide-in-from-top-2">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-pink-500 mb-3 px-2">Jump to Section</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            {sections.map((item) => (
-                                <button 
-                                    key={item} 
-                                    onClick={() => scrollToSection(item.toLowerCase())}
-                                    className="text-left px-4 py-3 bg-white/5 rounded-lg text-xs font-bold text-gray-300 active:bg-pink-500 active:text-white"
-                                >
-                                    {item}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
+/* ==========================================================================
+   MAIN PAGE COMPONENT
+   ========================================================================== */
+
+const TermsAndConditions = () => {
+    const scrollRef = useRef(null);
+    const { scrollYProgress } = useScroll({ target: scrollRef });
+    const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
+
+    return (
+        <div className="relative bg-[#030303] text-white selection:bg-pink-500/30 font-sans min-h-screen">
+            <NoiseOverlay />
+            
+            {/* Progress Bar */}
+            <motion.div
+                style={{ scaleX }}
+                className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 origin-left z-50 shadow-[0_0_20px_rgba(236,72,153,0.5)]"
+            />
+            
+            {/* Ambient Background */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-900/05 rounded-full blur-[120px]" />
             </div>
-
-            <div className="max-w-7xl mx-auto px-6 pt-16 md:pt-24">
-                
-                {/* --- HERO HEADER --- */}
-                <header className="mb-16 md:mb-24 relative border-b border-white/5 pb-12">
-                    {/* Fixed: Adjusted text size and position for mobile to prevent overflow */}
-                    <div className="absolute -top-12 -left-4 md:-top-16 md:-left-8 text-[80px] md:text-[140px] font-black text-white/[0.02] select-none pointer-events-none uppercase italic leading-none">
-                        Protocol
-                    </div>
-                    <h1 className="text-5xl md:text-9xl font-black uppercase italic tracking-tighter text-white leading-none relative z-10">
-                        Registry <span className="text-pink-500 underline decoration-white/10 underline-offset-8">Rules</span>
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-8 md:mt-10">
-                        <div className="px-5 py-2 border border-pink-500/20 bg-pink-500/5 rounded-full flex items-center gap-3">
-                            <div className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse" />
-                            <span className="text-[9px] md:text-[10px] font-black text-white uppercase tracking-widest">Version // S-16.2026</span>
+            
+            {/* Navigation */}
+            <nav className={`fixed top-0 w-full z-40 transition-all duration-300 border-b bg-[#030303]/80 backdrop-blur-xl border-white/5 py-3`}>
+                <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+                    <Link to="/" className="group flex items-center gap-3">
+                        <div className="p-2 bg-white/5 border border-white/10 rounded-full group-hover:bg-pink-500 group-hover:border-pink-500 transition-all">
+                            <ArrowLeft size={16} className="text-gray-400 group-hover:text-white" />
                         </div>
-                        <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] md:tracking-[0.4em] text-gray-500">
-                            Operational Guidelines
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold font-display text-white uppercase tracking-widest">Panache S-16</span>
+                            <span className="text-[10px] text-gray-500 uppercase tracking-widest group-hover:text-gray-300 transition-colors">Return Home</span>
+                        </div>
+                    </Link>
+                </div>
+            </nav>
+
+            {/* Main Content */}
+            <div ref={scrollRef} className="relative z-10 max-w-5xl mx-auto px-6 pt-32 lg:pt-48 pb-32">
+                
+                {/* Header */}
+                <header className="mb-24 lg:mb-32 text-center">
+                    <ActiveScrollReveal>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-pink-500/30 bg-pink-500/10 text-pink-400 text-[10px] font-black uppercase tracking-widest mb-6">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+                            </span>
+                            Legal Archive v4.2
+                        </div>
+                        <h1 className="font-display text-6xl md:text-8xl font-bold uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 leading-[0.9] mb-8">
+                            Rulebook <br/>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500">Registry</span>
+                        </h1>
+                        <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
+                            The definitive guide to conduct, participation, and competition standards for Panache S-16. Compliance is mandatory for all registered entities.
                         </p>
-                    </div>
+                    </ActiveScrollReveal>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                <div className="space-y-32">
+                    {/* SECTION 1: Philosophy */}
+                    <section>
+                        <ActiveScrollReveal>
+                            <SectionHeader number="01" title="Philosophy" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+                                <PleasantCard>
+                                    <p className="font-display text-2xl text-white font-medium leading-tight">"Together We Perform, Together We Achieve"</p>
+                                    <div className="h-1 w-12 bg-pink-500 mt-6 mb-6" />
+                                    <p className="text-sm text-gray-400 leading-relaxed">Panache S-16 is a convergence of diverse energies. Our core ethos is rooted in unity and collective excellence.</p>
+                                </PleasantCard>
+                                <PleasantCard>
+                                    <div className="w-12 h-12 bg-pink-500 rounded-2xl flex items-center justify-center mb-6 text-black"><Zap size={24} fill="currentColor" /></div>
+                                    <h3 className="font-display text-2xl font-bold text-white mb-2">Theme: The 80's</h3>
+                                    <p className="text-sm text-gray-400">Every participant acts as an ambassador of the retro era. Aesthetics, music, and conduct should reflect the vibrancy of the 1980s.</p>
+                                </PleasantCard>
+                            </div>
+                        </ActiveScrollReveal>
+                    </section>
+
+                    {/* SECTION 2: Participation */}
+                    <section>
+                        <ActiveScrollReveal>
+                            <SectionHeader number="02" title="Participation Framework" />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                               <GlassCard title="Event Limit" icon={Hash} content="Strict limit of ONE event per student to ensure fair opportunity distribution. Exceptions for 'March of Minds'." />
+                               <GlassCard title="Exemptions" icon={Star} content="Support roles (Models, Instrument Accompanists) are exempt from the single-event cap." />
+                               <GlassCard title="Trophy Criteria" icon={Trophy} content="Departments must field candidates in 42 total events (29 mandatory) to qualify for the Rolling Trophy." />
+                            </div>
+                        </ActiveScrollReveal>
+                    </section>
+
+                     {/* SECTION 3: Registry Grid (Redesigned) */}
+                    <section>
+                       <ActiveScrollReveal>
+                         <SectionHeader number="03" title="Department Registry" />
+                         <div className="mt-12">
+                            <DepartmentGrid />
+                         </div>
+                       </ActiveScrollReveal>
+                    </section>
                     
-                    {/* --- SIDEBAR NAVIGATION (Desktop Only) --- */}
-                    <div className="hidden lg:block lg:col-span-3 sticky top-32 h-fit space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-4 pl-3">Directory</p>
-                        {sections.map((item) => (
-                            <button 
-                                key={item} 
-                                onClick={() => scrollToSection(item.toLowerCase())} 
-                                className="block w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                            >
-                                {item}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* --- MAIN CONTENT AREA --- */}
-                    <div className="lg:col-span-9 space-y-20 md:space-y-32">
-
-                        {/* 1.0 PREAMBLE */}
-                        <section id="preamble" className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <SectionHeader icon={ShieldAlert} title="1.0 Preamble & Philosophy" />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 text-sm leading-relaxed border-t border-white/5 pt-8 text-gray-400">
-                                <p>
-                                    PANACHE S-16 represents the pinnacle of cultural celebration at Vivekananda Global University. 
-                                    It is a platform where students from diverse backgrounds converge to exhibit skill, passion, 
-                                    and excellence. The core motto governing all interactions is <span className="text-white font-bold italic">"Together We Perform, Together We Achieve"</span>.
-                                </p>
-                                <p>
-                                    Participation is governed by the philosophy of unity. While individual accolades are awarded, 
-                                    the festival emphasizes teamwork and making meaningful connections. 
-                                    Every participant is an ambassador of the theme "80'S".
-                                </p>
-                            </div>
-                        </section>
-
-                        {/* 2.0 PARTICIPATION FRAMEWORK */}
-                        <section id="framework">
-                            <SectionHeader icon={Users} title="2.0 Participation Framework" />
-                            <div className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <RuleCard 
-                                        code="2.1" 
-                                        title="Event Limitation" 
-                                        desc="Participation is restricted to one event per student to ensure variety. Exceptions granted for March of Minds and Sanskritic Sangam." 
-                                    />
-                                    <RuleCard 
-                                        code="2.2" 
-                                        title="Role Exemption" 
-                                        desc="Models and instrumental accompanists are exempt from the one-event restriction and may participate multiple times." 
-                                    />
-                                    <RuleCard 
-                                        code="2.3" 
-                                        title="Trophy Eligibility" 
-                                        desc="Departments must participate in 42 events (including 29 mandatory) to qualify for the Overall Rolling Trophy." 
-                                    />
-                                </div>
-                                
-                                <div className="p-6 md:p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-6">
-                                    <h3 className="text-xs font-black text-pink-500 uppercase tracking-widest">Digital Compliance</h3>
-                                    <ul className="space-y-4 text-xs text-gray-400">
-                                        <li className="flex gap-4">
-                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600 shrink-0" />
-                                            <span>Mandatory download of <span className="text-white font-bold">Zolo Scholar App</span> for all participants.</span>
-                                        </li>
-                                        <li className="flex gap-4">
-                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600 shrink-0" />
-                                            <span>Campus entry and venue access is granted ONLY through Zolo check-in.</span>
-                                        </li>
-                                        <li className="flex gap-4">
-                                            <div className="h-1.5 w-1.5 mt-1.5 rounded-full bg-gray-600 shrink-0" />
-                                            <span>College ID cards must be physically present at all times for security verification.</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* 3.0 DEPARTMENTAL REGISTRY */}
-                        <section id="departments">
-                            <SectionHeader icon={Info} title="3.0 Departmental Registry" />
-                            <p className="text-xs text-gray-500 mb-8 uppercase tracking-widest">Verified Team Codes & Cultural Themes</p>
-                            
-                            {/* Fixed: Changed overflow-hidden to overflow-x-auto for mobile scrolling */}
-                            <div className="overflow-x-auto border border-white/10 rounded-3xl bg-white/[0.01]">
-                                <table className="w-full text-left border-collapse min-w-[600px]">
-                                    <thead>
-                                        <tr className="bg-white/5 border-b border-white/5 text-[9px] font-black text-pink-500 uppercase tracking-widest">
-                                            <th className="px-6 py-5">#</th>
-                                            <th className="px-6 py-5">Department Node</th>
-                                            <th className="px-6 py-5">Team Callsign</th>
-                                            <th className="px-6 py-5">State Theme</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="text-xs divide-y divide-white/5">
-                                        <DeptRow id="01" dept="Physics / R&D / Life Science / Math / Chem" team="Creative Titans" theme="Sikkim" />
-                                        <DeptRow id="02" dept="Forensic Science" team="Mystery Masters" theme="Gujarat" />
-                                        <DeptRow id="03" dept="Management Studies" team="Management Marvels" theme="Kashmir" />
-                                        <DeptRow id="04" dept="Mech / Elec / Civil / VIT" team="Tech Titans" theme="Assam" />
-                                        <DeptRow id="05" dept="Hotel Mgmt / Humanities / Commerce" team="The Kaleidoscope" theme="Telangana" />
-                                        <DeptRow id="06" dept="Paramedical" team="The Lab Legends" theme="Bihar" />
-                                        <DeptRow id="07" dept="Pharmacy" team="The Pharma-Phrenzy" theme="Kerala" />
-                                        <DeptRow id="08" dept="Law" team="Legal Eagle" theme="Haryana" />
-                                        <DeptRow id="09" dept="Design / Architecture / BJMC" team="CODE Zilla" theme="Odisha" />
-                                        <DeptRow id="10" dept="Computer Application" team="Logics Warriors" theme="Manipur" />
-                                        <DeptRow id="11" dept="Allied & Healthcare" team="Physio Brigade" theme="Himachal Pradesh" />
-                                        <DeptRow id="12" dept="ABM" team="AMB Next Wave" theme="Chhattisgarh" />
-                                        <DeptRow id="13" dept="Agriculture" team="OG! Ags" theme="West Bengal" />
-                                        <DeptRow id="14" dept="B.Tech (1st Year)" team="Tech Phoenix" theme="Maharashtra" />
-                                        <DeptRow id="15" dept="Computer Science & Engineering" team="405 Found" theme="Punjab" />
-                                    </tbody>
-                                </table>
-                            </div>
-                            <p className="lg:hidden text-[9px] text-gray-600 mt-2 text-center italic">← Swipe to view table →</p>
-                        </section>
-
-                        {/* 4.0 EVENT PROTOCOLS */}
-                        <section id="events">
-                            <SectionHeader icon={Trophy} title="4.0 Event Protocols & Rules" />
+                    {/* SECTION 4: Events */}
+                    <section>
+                        <ActiveScrollReveal>
+                            <SectionHeader number="04" title="Event Protocols" />
                             <div className="space-y-16 mt-12">
-                                
-                                {/* 4.1 CULTURAL & ETHNIC */}
-                                <CategoryBlock title="Ethnic & Cultural" icon={Flag}>
-                                    <EventDetail 
-                                        title="Sanskritic Sangam (Ethnic Day)" 
-                                        rules={[
-                                            "Team Size: 30 Students",
-                                            "Duration: 7 min performance + 1 min setup",
-                                            "Content: Ethnic ramp walk & Cultural Dance of allocated state",
-                                            "Requirement: Audio track submitted 1 day prior"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="March of Minds (Opening)" 
-                                        rules={[
-                                            "Team Size: 10 Students",
-                                            "Action: Disciplined march from main gate to main stage",
-                                            "Prop Rule: Creative props (helmets, blueprints) allowed",
-                                            "Safety: No hazardous items"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="Khao Gali (Food Stalls)" 
-                                        rules={[
-                                            "Team Size: 5 (4 Students + 1 Faculty)",
-                                            "Theme: Cuisine of assigned state",
-                                            "Currency: Coupons of 20, 50, 100 rupees only",
-                                            "Winning Criteria: Based on total sales volume, not revenue"
-                                        ]} 
-                                    />
-                                </CategoryBlock>
-
-                                {/* 4.2 MUSIC */}
-                                <CategoryBlock title="Music & Vocals" icon={Music}>
-                                    <EventDetail 
-                                        title="Melody Hues (Solo)" 
-                                        rules={[
-                                            "Format: 1 Participant + 1 Instrumentalist",
-                                            "Time: 4 min performance + 1 min setup",
-                                            "Restriction: No pre-recorded backing tracks. Live only"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="Bandish Bandits (Group)" 
-                                        rules={[
-                                            "Team Size: 6 Members",
-                                            "Time: 6 min performance + 2 min setup",
-                                            "Allowance: Pre-recorded backing tracks permitted"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="The Vocal Edition (Beatbox)" 
-                                        rules={[
-                                            "Format: Solo",
-                                            "Time: Max 3 minutes",
-                                            "Strict Rule: No background music or instruments. Vocal only"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="Mehfil-e-Nagma (Qawwali)" 
-                                        rules={[
-                                            "Team Size: 7 Members (Gender Balanced)",
-                                            "Time: 8 min performance + 2 min setup",
-                                            "Live Rule: No recorded tracks allowed"
-                                        ]} 
-                                    />
-                                </CategoryBlock>
-
-                                {/* 4.3 DANCE */}
-                                <CategoryBlock title="Choreography" icon={Activity}>
-                                    <EventDetail 
-                                        title="Nrityamrit (Folk/Tribal)" 
-                                        rules={[
-                                            "Team Size: 10 Participants",
-                                            "Time: 8 min performance + 2 min setup",
-                                            "Audio: Live or Recorded allowed"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="Soul Synergy (Solo)" 
-                                        rules={[
-                                            "Style: Classical or Semi-Classical ONLY",
-                                            "Time: Max 5 minutes total",
-                                            "Submission: Track submitted 1 day prior"
-                                        ]} 
-                                    />
-                                </CategoryBlock>
-
-                                {/* 4.4 ARTISTIC */}
-                                <CategoryBlock title="Fine Arts" icon={Palette}>
-                                    <EventDetail 
-                                        title="Brush & Blush (Face Painting)" 
-                                        rules={[
-                                            "Team: 6 Members (3 Artists + 3 Models)",
-                                            "Duration: 90 Minutes",
-                                            "Theme: Announced on spot"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="Monochrome Marvel" 
-                                        rules={[
-                                            "Palette: Black & White ONLY",
-                                            "Tools: Charcoal, pastel, chalk allowed",
-                                            "Team: 3 Pairs (2 per pair)",
-                                            "Disqualification: Use of any other color"
-                                        ]} 
-                                    />
-                                    <EventDetail 
-                                        title="Quick Brush" 
-                                        rules={[
-                                            "Format: Solo",
-                                            "Duration: 120 Minutes",
-                                            "Restriction: No mobile phones or reference images"
-                                        ]} 
-                                    />
-                                </CategoryBlock>
+                                <CategoryGroup title="Cultural & Ethnic" icon={Zap}>
+                                    <DetailCard title="Sanskritic Sangam" specs={["30 Students", "7+1 Mins"]} desc="Ethnic ramp walk & cultural dance representing the allocated state. Audio track required 24h prior."/>
+                                    <DetailCard title="March of Minds" specs={["10 Students", "Opening Ceremony"]} desc="Disciplined march from gate to stage. Creative props (helmets/blueprints) highly encouraged." />
+                                    <DetailCard title="Khao Gali" specs={["4 Students + 1 Faculty", "Sales Based"]} desc="State cuisine stalls. Currency coupons of 20/50/100 only. Winner decided by volume, not revenue." />
+                                </CategoryGroup>
+                                <CategoryGroup title="Music & Vocals" icon={Music}>
+                                    <DetailCard title="Melody Hues (Solo)" specs={["1+1 Format", "Live Only"]} desc="Solo vocal with one instrumentalist. No backing tracks allowed." />
+                                    <DetailCard title="Bandish Bandits" specs={["6 Members", "Backing Allowed"]} desc="Group singing competition. Pre-recorded backing tracks are permitted." />
+                                    <DetailCard title="The Vocal Edition" specs={["Solo Beatbox", "No Instruments"]} desc="Pure vocal percussion. No background music or instruments permitted." />
+                                </CategoryGroup>
+                                <CategoryGroup title="Dance & Motion" icon={Activity}>
+                                    <DetailCard title="Nrityamrit" specs={["10 Members", "Folk/Tribal"]} desc="Group folk dance performance. Live or recorded audio permitted." />
+                                    <DetailCard title="Soul Synergy" specs={["Solo", "Classical Only"]} desc="Strictly classical or semi-classical dance forms." />
+                                </CategoryGroup>
+                                <CategoryGroup title="Fine Arts" icon={Palette}>
+                                    <DetailCard title="Brush & Blush" specs={["3 Artists + 3 Models", "90 Mins"]} desc="Face painting competition. Theme announced on the spot." />
+                                    <DetailCard title="Monochrome Marvel" specs={["3 Pairs", "B&W Only"]} desc="Charcoal/Pastel art. Immediate disqualification for using color." />
+                                </CategoryGroup>
                             </div>
-                        </section>
+                        </ActiveScrollReveal>
+                    </section>
 
-                        {/* 5.0 E-SPORTS & TECH */}
-                        <section id="e-sports">
-                            <SectionHeader icon={Gamepad2} title="5.0 E-Sports & Technical" />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                                <div className="p-8 bg-pink-500/[0.03] border border-pink-500/20 rounded-3xl">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <Smartphone className="text-pink-500" size={20} />
-                                        <h3 className="text-lg font-black uppercase text-white">Mobile E-Sports</h3>
+                    {/* SECTION 5: Tech Ops */}
+                    <section>
+                        <ActiveScrollReveal>
+                            <SectionHeader number="05" title="Tech Ops" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+                               <PleasantCard className="border-green-500/20 hover:border-green-500/40">
+                                   <div className="flex justify-between items-start mb-6">
+                                       <Smartphone size={32} className="text-green-500" />
+                                       <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] font-bold uppercase text-green-400">Mobile Only</span>
+                                   </div>
+                                   <h3 className="font-display text-2xl font-black text-white uppercase italic mb-2">E-Sports Arena</h3>
+                                   <p className="text-sm text-gray-400 mb-6">BGMI / Free Fire / COD Mobile</p>
+                                   <ul className="space-y-3">
+                                        {["Squad Format (4 Players)", "Bring Your Own Device", "Anti-Cheat Active"].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-xs text-gray-300">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                               </PleasantCard>
+                               <PleasantCard className="border-cyan-500/20 hover:border-cyan-500/40">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <Zap size={32} className="text-cyan-500" />
+                                        <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-bold uppercase text-cyan-400">Robotics</span>
                                     </div>
-                                    <div className="space-y-6">
-                                        <div>
-                                            <h4 className="text-xs font-bold text-gray-300 uppercase mb-2">BGMI / Free Fire / COD</h4>
-                                            <ul className="text-xs text-gray-500 space-y-2">
-                                                <li>• Squad Format (4 Players)</li>
-                                                <li>• Bring Your Own Device (Mobile Only)</li>
-                                                <li>• <span className="text-pink-500 font-bold">Zero Tolerance:</span> Hacks/Cheats = Ban</li>
-                                                <li>• Scoring: 1st (10pts), 2nd (6pts), 3rd (5pts)</li>
-                                                <li>• Kill Points: 1 Point per kill</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
+                                    <h3 className="font-display text-2xl font-black text-white uppercase italic mb-2">Circuit Rush</h3>
+                                    <p className="text-sm text-gray-400 mb-6">RC 4-Wheeler Construction</p>
+                                    <ul className="space-y-3">
+                                        {["Build from Scratch", "No Readymade Kits", "Wireless Remote Only"].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-3 text-xs text-gray-300">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                               </PleasantCard>
+                            </div>
+                        </ActiveScrollReveal>
+                    </section>
 
-                                <div className="p-8 bg-pink-500/[0.03] border border-pink-500/20 rounded-3xl">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <Zap className="text-pink-500" size={20} />
-                                        <h3 className="text-lg font-black uppercase text-white">Circuit Rush</h3>
-                                    </div>
-                                    <div className="space-y-6">
+                    {/* SECTION 6: Dispute */}
+                    <section>
+                        <ActiveScrollReveal>
+                            <SectionHeader number="06" title="Dispute Resolution" />
+                            <div className="mt-12 p-[1px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-3xl">
+                                <div className="bg-[#050505] rounded-[23px] p-8 md:p-12 relative overflow-hidden">
+                                    {/* Subtle shimmer effect inside */}
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px]" />
+                                    
+                                    <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
+                                        <Scale size={48} className="text-white shrink-0" />
                                         <div>
-                                            <h4 className="text-xs font-bold text-gray-300 uppercase mb-2">Technical Moto Race</h4>
-                                            <ul className="text-xs text-gray-500 space-y-2">
-                                                <li>• Team: 4 Members</li>
-                                                <li>• Task: Build RC 4-wheeler from scratch</li>
-                                                <li>• <span className="text-pink-500 font-bold">Prohibited:</span> Readymade kits/vehicles</li>
-                                                <li>• Control: Wireless Remote Only (No Wired)</li>
-                                                <li>• Check-in: 20 mins prior for inspection</li>
-                                            </ul>
+                                            <h3 className="font-display text-2xl font-bold text-white mb-4">Binding Authority</h3>
+                                            <p className="text-sm text-gray-400 leading-relaxed mb-6 max-w-2xl">All decisions made by the judging panel are final. In extreme cases of dispute, teams may approach the Dispute Resolution Committee during the designated window.</p>
+                                            <div className="inline-flex items-center gap-4 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+                                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                                <span className="text-xs font-mono text-gray-300">Window: 4:00 PM - 5:00 PM @ DSW Office</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </section>
-
-                        {/* 6.0 LEGAL & CONTACT */}
-                        <section id="legal">
-                            <SectionHeader icon={Scale} title="6.0 Legal & Dispute Resolution" />
-                            <div className="mt-8 border-l border-white/10 pl-8 space-y-6 text-sm">
-                                <p>
-                                    All decisions made by the judging panel are final and binding. 
-                                    In the event of a dispute, teams may approach the 
-                                    <span className="text-white font-bold"> Dispute Resolution Committee</span>.
-                                </p>
-                                <div className="p-6 bg-white/[0.02] rounded-xl border border-white/5 inline-block">
-                                    <h4 className="text-[10px] font-black uppercase text-pink-500 tracking-widest mb-2">Resolution Window</h4>
-                                    <p className="text-xs text-gray-400">
-                                        Daily: 4:00 PM - 5:00 PM<br/>
-                                        Location: DSW Office<br/>
-                                        Authority: Student Council & ADSW
-                                    </p>
-                                </div>
+                        </ActiveScrollReveal>
+                    </section>
+                    
+                    {/* SECTION 7: Core Registry */}
+                    <section>
+                        <ActiveScrollReveal>
+                             <SectionHeader number="07" title="Core Registry" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
+                                {[
+                                    {n:"Vishal Kumar", r:"Convener", p:"9661757779"},
+                                    {n:"Tarun Pratap Singh", r:"Co-Convener", p:"7849863839"},
+                                    {n:"Krishna Poddar", r:"Secretary", p:"8619295090"},
+                                    {n:"Ananya Priya", r:"Co-Secretary", p:"6299838371"},
+                                    {n:"Chetanprakash Kaushik", r:"Treasurer", p:"8488846789"},
+                                    {n:"Ritesh Chanda", r:"Mgmt Head", p:"8306617515"},
+                                    {n:"Umesh Gadhwal", r:"Venue Head", p:"8529115783"},
+                                    {n:"Nimmalapudi Akash", r:"Discipline", p:"8018177287"},
+                                ].map((c, i) => (
+                                    <PleasantCard key={i}>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-pink-500 mb-1">{c.r}</p>
+                                        <h4 className="font-display text-lg font-bold text-white uppercase mb-3">{c.n}</h4>
+                                        <p className="text-xs font-mono text-gray-500">{c.p}</p>
+                                    </PleasantCard>
+                                ))}
                             </div>
-                        </section>
+                        </ActiveScrollReveal>
+                    </section>
 
-                        {/* 7.0 DIRECTORY */}
-                        <section id="contact" className="pb-20">
-                            <SectionHeader icon={FileText} title="7.0 Core Team Registry" />
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-                                <ContactCard name="Vishal Kumar" role="Convener" phone="9661757779" />
-                                <ContactCard name="Tarun Pratap Singh" role="Co-Convener" phone="7849863839" />
-                                <ContactCard name="Krishna Poddar" role="Secretary" phone="8619295090" />
-                                <ContactCard name="Ananya Priya" role="Co-Secretary" phone="6299838371" />
-                                <ContactCard name="Chetanprakash Kaushik" role="Treasurer" phone="8488846789" />
-                                <ContactCard name="Ritesh Chanda" role="Management Head" phone="8306617515" />
-                                <ContactCard name="Umesh Gadhwal" role="Venue Head" phone="8529115783" />
-                                <ContactCard name="Lachman Das" role="Senior Advisor" phone="8690465769" />
-                                <ContactCard name="Nimmalapudi Akash" role="Discipline Head" phone="8018177287" />
-                            </div>
-                        </section>
-
-                    </div>
                 </div>
             </div>
         </div>
     );
 };
 
-// --- SUB-COMPONENTS ---
+// --- SUB COMPONENTS ---
 
-const SectionHeader = ({ icon: Icon, title }) => (
-    <div className="flex items-center gap-4 mb-2 pb-4 border-b border-white/5">
-        <div className="p-3 bg-pink-500/10 rounded-xl text-pink-500">
-            <Icon size={24} />
+const SectionHeader = ({ number, title }) => (
+    <div className="flex items-end gap-6 border-b border-white/10 pb-6">
+        <span className="font-display text-7xl md:text-8xl font-medium text-white/30 leading-[0.8] select-none">{number}</span>
+        <h2 className="font-stretch-100% text-xl md:text-5xl font-bold uppercase text-white tracking-tight mb-1">{title}</h2>
+    </div>
+);
+
+const GlassCard = ({ title, content, icon: Icon }) => (
+    <PleasantCard className="h-full">
+        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:bg-pink-500 group-hover:text-white transition-all duration-300 mb-6">
+            <Icon size={20} />
         </div>
-        {/* Adjusted size for mobile text wrapping */}
-        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-white leading-tight">{title}</h2>
-    </div>
+        <h3 className="font-display text-lg font-bold text-white uppercase tracking-wide mb-3">{title}</h3>
+        <p className="text-xs text-gray-500 leading-relaxed">{content}</p>
+    </PleasantCard>
 );
 
-const RuleCard = ({ code, title, desc }) => (
-    <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-pink-500/30 transition-colors group">
-        <h4 className="text-pink-500 font-black text-[10px] uppercase mb-2 group-hover:text-white transition-colors">Rule {code}</h4>
-        <h3 className="text-sm font-bold text-white uppercase mb-2">{title}</h3>
-        <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-    </div>
-);
-
-const DeptRow = ({ id, dept, team, theme }) => (
-    <tr className="hover:bg-white/[0.02] transition-colors group">
-        <td className="px-6 py-5 font-mono text-gray-600 group-hover:text-pink-500">{id}</td>
-        <td className="px-6 py-5 text-gray-300 font-bold uppercase text-[10px] tracking-wide whitespace-nowrap md:whitespace-normal">{dept}</td>
-        <td className="px-6 py-5 text-white font-black uppercase text-[10px] tracking-widest whitespace-nowrap">{team}</td>
-        <td className="px-6 py-5 text-pink-500 font-bold uppercase text-[10px] tracking-widest">{theme}</td>
-    </tr>
-);
-
-const CategoryBlock = ({ title, icon: Icon, children }) => (
+const CategoryGroup = ({ title, icon: Icon, children }) => (
     <div className="space-y-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-2">
             <Icon size={18} className="text-pink-500" />
-            <h3 className="text-lg font-black uppercase text-white tracking-widest">{title}</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest text-white">{title}</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {children}
         </div>
     </div>
 );
 
-const EventDetail = ({ title, rules }) => (
-    <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-        <h4 className="text-sm font-black text-white uppercase mb-4 border-l-2 border-pink-500 pl-3">{title}</h4>
-        <ul className="space-y-2">
-            {rules.map((rule, idx) => (
-                <li key={idx} className="text-[10px] text-gray-400 flex items-start gap-2">
-                    <span className="text-pink-500 mt-0.5 shrink-0">•</span>
-                    {rule}
-                </li>
+const DetailCard = ({ title, specs, desc }) => (
+    <PleasantCard className="h-full flex flex-col">
+        <h4 className="font-display text-lg font-bold text-white uppercase mb-4 group-hover:text-pink-500 transition-colors">{title}</h4>
+        <div className="flex flex-wrap gap-2 mb-6">
+            {specs.map((s, i) => (
+                <span key={i} className="px-2 py-1 rounded-md bg-white/5 text-[10px] font-bold text-gray-400 border border-white/5">{s}</span>
             ))}
-        </ul>
-    </div>
+        </div>
+        <p className="text-[11px] text-gray-500 leading-relaxed mt-auto">{desc}</p>
+    </PleasantCard>
 );
 
-const ContactCard = ({ name, role, phone }) => (
-    <div className="group p-5 bg-white/[0.01] border border-white/5 rounded-xl hover:bg-pink-500/5 hover:border-pink-500/20 transition-all cursor-default">
-        <h4 className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1 group-hover:text-pink-500">{role}</h4>
-        <p className="text-xs text-white font-bold mb-2 uppercase">{name}</p>
-        <div className="flex items-center gap-2 text-gray-500 group-hover:text-gray-300 transition-colors">
-            <Smartphone size={10} />
-            <span className="text-[10px] font-mono tracking-tighter">{phone}</span>
-        </div>
-    </div>
-);
 
 export default TermsAndConditions;

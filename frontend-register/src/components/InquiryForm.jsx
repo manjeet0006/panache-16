@@ -4,7 +4,7 @@ import {
     ShieldCheck, Check, ArrowRight, Edit3 
 } from 'lucide-react';
 // Ensure this path is correct for your project structure
-import universityData from '../../public/world_universities_and_domains.json'; 
+import universityData from '../assets/world_universities_and_domains.json'; 
 
 // --- 🛠️ CONSOLIDATED JAIPUR REGISTRY (Merged List) ---
 const JAIPUR_EXTENSIONS = [

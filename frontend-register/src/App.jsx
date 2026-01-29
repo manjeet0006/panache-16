@@ -14,6 +14,12 @@ import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import TermsAndConditions from './pages/terms_and_conditions';
+import Contact from './pages/Contact';
+import ConcertShowcase from './pages/ConcertShowcase';
+import ConcertBooking from './pages/ConcertBooking';
+import ConcertDashboard from './pages/ConcertDashboard';
+import TicketDashboard from './pages/TicketDashboard';
+
 
 
 
@@ -74,11 +80,19 @@ function App() {
             <Route path="/" element={<Home />} />
 
             <Route path="/login" element={<Login />} />
+
             <Route path="/events" element={<EventsExplorer />} />
             <Route path="/register/:eventId" element={<RegisterForm />} />
             {/* Pass the global socket instance to the scanner */}
             <Route path='/scan' element={<ScannerPage socket={socket} />} />
-            <Route path='/terms-and-conditions' element={<TermsAndConditions/>}/>
+            <Route path='/terms-and-conditions' element={<TermsAndConditions />} />
+            <Route path='/contact' element={<Contact />} />
+
+            {/* 2. CONCERT ROUTES (Guest Accessible) */}
+            <Route path="/concerts" element={<ConcertShowcase />} />
+            <Route path="/concerts/book/:id" element={<ConcertBooking />} />
+            <Route path="/ticket-dashboard" element={<TicketDashboard />} />
+
 
 
             <Route
@@ -88,7 +102,15 @@ function App() {
                   <Dashboard />
                 </ProtectedRoute>
               }
-              />
+            />
+            <Route
+              path="/concert-dashboard"
+              element={
+                <ProtectedRoute>
+                  <ConcertDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

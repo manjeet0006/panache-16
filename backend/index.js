@@ -13,6 +13,7 @@ import judgingRoutes from './routes/judgingRoutes.js';
 import scanningRoutes from './routes/scanningRoutes.js';
 import metaRoutes from './routes/meta.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import concertRoutes from './routes/concertRoutes.js'; 
 // import userRoutes from './routes/userRoutes'
 dotenv.config();
 
@@ -24,17 +25,11 @@ app.set('trust proxy', 1);
 // 1. Configure CORS & Socket.io
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://panache.vercel.app",
   "https://panache-16.vercel.app"
 ];
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -50,7 +45,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
 
 // In-memory cache
@@ -167,6 +168,8 @@ app.use('/api/judge', judgingRoutes);
 app.use('/api/scan', scanningRoutes); // Keep for history/manual lookups
 app.use('/api/admin', adminRoutes);
 app.use('/api/meta', metaRoutes);
+
+app.use('/api/concert', concertRoutes); 
 
 app.use('/api/user', userRoutes);
 
