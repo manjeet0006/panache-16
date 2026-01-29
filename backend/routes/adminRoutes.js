@@ -30,7 +30,10 @@ router.post('/invites/generate', adminCtrl.generateSecretCodes);
 router.get('/invites/available/:eventId', adminCtrl.getAvailableCodes);
 
 // 4. Infrastructure Management
-router.post('/events', adminCtrl.createEvent);
+router.post('/crevents', adminCtrl.createEvent);
+router.get("/events", adminCtrl.getEvents);
+router.delete("/events/:eventId", adminCtrl.deleteEvent);
+
 router.post('/departments', adminCtrl.createDepartment);
 
 // 5. Judge Management

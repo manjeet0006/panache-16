@@ -49,6 +49,32 @@ export const createEvent = async (req, res) => {
   }
 };
 
+export const getEvents = async (req, res) => {
+  try {
+    const events = await prisma.event.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    await prisma.event.delete({
+      where: { id: eventId },
+    });
+    res.json({ message: "Event deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Department Creation
+
 export const createDepartment = async (req, res) => {
   const { name, secretCode, collegeId } = req.body;
   try {
