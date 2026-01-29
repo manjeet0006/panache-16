@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import { Toaster, toast } from 'sonner';
 import { useAuth } from './context/AuthContext';
 
@@ -7,7 +8,7 @@ import { useAuth } from './context/AuthContext';
 import Home from './pages/Home';
 import EventsExplorer from './pages/Events';
 import RegisterForm from './pages/RegisterForm';
-import ScannerPage from './pages/ScannerPage';
+// import ScannerPage from './pages/ScannerPage';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
@@ -27,6 +28,16 @@ import TicketDashboard from './pages/TicketDashboard';
 // Replace with your actual backend URL
 // App.jsx or Socket config file
 
+
+
+const ProtectedRoute = ({ children }) => {
+  const { token, loading } = useAuth();
+
+  if (loading) return null; // Wait for context to load
+  if (!token) return <Navigate to="/login" replace />;
+
+  return children;
+};
 
 
 
@@ -50,7 +61,7 @@ function App() {
             <Route path="/events" element={<EventsExplorer />} />
             <Route path="/register/:eventId" element={<RegisterForm />} />
             {/* Pass the global socket instance to the scanner */}
-            <Route path='/scan' element={<ScannerPage socket={socket} />} />
+            {/* <Route path='/scan' element={<ScannerPage socket={socket} />} /> */}
             <Route path='/terms-and-conditions' element={<TermsAndConditions />} />
             <Route path='/contact' element={<Contact />} />
 
