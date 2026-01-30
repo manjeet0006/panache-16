@@ -41,7 +41,8 @@ const RegisterForm = () => {
         members: [{ name: '', phone: '', enrollment: '', isLeader: true }],
         collegeId: '',
         customCollegeName: '',
-        departmentId: ''
+        departmentId: '',
+        emailId: ''
     });
 
     // --- 2. DATA FETCHING ---
@@ -294,6 +295,9 @@ const RegisterForm = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input className="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Team Name" onChange={e => setFormData({ ...formData, teamName: e.target.value })} required />
                                 <input className="w-full bg-pink-500/5 border border-pink-500/20 p-4 rounded-xl outline-none text-pink-500 font-bold uppercase" placeholder="Secret Code" onChange={e => setFormData({ ...formData, secretCode: e.target.value })} required />
+                            </div>
+                            <div className="grid grid-cols-1 gap-4">
+                                <input className="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Email Id" onChange={e => setFormData({ ...formData, emailId: e.target.value })} required />
                             </div>
 
                             {/* College Locking Logic */}

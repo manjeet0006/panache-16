@@ -1,4 +1,5 @@
 import tailwindcssAnimate from 'tailwindcss-animate';
+import colors from 'tailwindcss/colors';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -14,12 +15,17 @@ export default {
     container: {
       center: true,
       padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
       colors: {
+        // --- THEME OVERRIDES START ---
+        // This tricks the site into showing Blue/Indigo instead of Pink/Purple
+        pink: colors.blue,
+        purple: colors.indigo,
+        fuchsia: colors.sky,
+        // --- THEME OVERRIDES END ---
+
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -53,13 +59,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        fontFamily: {
-        // Now 'font-sans' defaults to Satoshi (cleaner than Inter)
-        sans: ['Satoshi', 'sans-serif'],
-        
-        // Use 'font-display' for your big headers
-        display: ['Clash Display', 'sans-serif'],
       },
+      fontFamily: {
+        sans: ['Satoshi', 'sans-serif'],
+        display: ['Clash Display', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",

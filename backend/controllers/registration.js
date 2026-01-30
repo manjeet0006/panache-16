@@ -38,7 +38,7 @@ export const submitRegistration = async (req, res) => {
         const {
             teamName, eventId, collegeId,
             customCollegeName, departmentId,
-            razorpay_order_id, razorpay_payment_id, razorpay_signature
+            razorpay_order_id, razorpay_payment_id, razorpay_signature , eamilId
         } = req.body;
 
         const secretCode = req.body.secretCode?.trim().toUpperCase();
@@ -135,6 +135,7 @@ export const submitRegistration = async (req, res) => {
             const team = await tx.team.create({
                 data: {
                     teamName,
+                    teamEmail: eamilId,
                     paymentStatus: "APPROVED",
                     transactionId: isVgu ? `VGU_INTERNAL_${Date.now()}` : razorpay_payment_id,
                     ticketCode: (!isVgu || event.allowOutside)

@@ -14,6 +14,7 @@ import scanningRoutes from './routes/scanningRoutes.js';
 import metaRoutes from './routes/meta.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import concertRoutes from './routes/concertRoutes.js';
+// import emailRoutes from './routes/emailRoutes.js';
 // import userRoutes from './routes/userRoutes'
 dotenv.config();
 
@@ -375,6 +376,7 @@ app.use('/api/meta', metaRoutes);
 app.use('/api/concert', concertRoutes);
 
 app.use('/api/user', userRoutes);
+// app.use('/api' , emailRoutes);
 
 app.use(errorHandler);
 

@@ -106,6 +106,8 @@ model Team {
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
 
+  teamEmail String @default("placeholder@example.com")
+
   // External (or limited internal) teams link to Invite Code
   inviteId String?      @unique
   invite   EventInvite?
