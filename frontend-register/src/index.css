@@ -12,66 +12,6 @@
 }
 
 /* 3. TAILWIND V4 THEME OVERRIDE */
-@theme {
-  /* Link utilities */
-  --font-display: var(--font-display);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-
-  /* --- SUNSET BLAZE PALETTE (Preserved) --- */
-  
-  /* Backgrounds */
-  --color-black-rich: #0a0505;   
-  --color-black-surface: #1a0a0a; 
-  --color-black-glass: rgba(20, 5, 5, 0.4); 
-
-  /* Primary Brand: Orange (The Sun) */
-  --color-pink-50: #fff7ed;
-  --color-pink-100: #ffedd5;
-  --color-pink-400: #fb923c;
-  --color-pink-500: #f97316; 
-  --color-pink-600: #ea580c;
-  --color-pink-900: #7c2d12;
-
-  /* Secondary Brand: Rose Red (The Heat) */
-  --color-purple-50: #fff1f2;
-  --color-purple-100: #ffe4e6;
-  --color-purple-400: #fb7185;
-  --color-purple-500: #e11d48; 
-  --color-purple-600: #be123c;
-  --color-purple-900: #881337;
-
-  /* Accents: Amber/Gold (The Glow) */
-  --color-blue-50: #fffbeb;
-  --color-blue-100: #fef3c7;
-  --color-blue-400: #fbbf24;
-  --color-blue-500: #f59e0b; 
-  --color-blue-600: #d97706;
-  --color-blue-900: #78350f;
-
-  /* Mappings */
-  --color-cyan-500: #f59e0b;
-/* Replaces oklch(0.4 0.17 25.92) */
-  --color-indigo-600: #900f48; 
-  /* Lighter version for hover (approx oklch 0.45) */
-  --color-indigo-500: #a81f56;
-  
-  /* Functional Colors */
-  --color-red-500: #b91c1c; 
-  --color-green-500: #10b981; 
-  --color-yellow-500: #facc15;
-  
-  /* Gray Scale (Warm Stone) */
-  --color-gray-50: #fafaf9;
-  --color-gray-100: #f5f5f4;
-  --color-gray-400: #a8a29e;
-  --color-gray-500: #78716c;
-  --color-gray-600: #57534e;
-  --color-gray-700: #44403c;
-  --color-gray-800: #292524;
-  --color-gray-900: #1c1917;
-}
-
 /* --- UTILITIES --- */
 
 .no-scrollbar::-webkit-scrollbar {

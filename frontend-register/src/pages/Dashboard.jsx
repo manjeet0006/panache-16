@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import API from '../api';
-import TicketModal from '../components/TicketModal';
 import DashboardSkeleton from '@/components/loading/dashboard';
+import SuccessScreen from '@/components/SuccessScreen';
 
 
 const Dashboard = () => {
@@ -251,7 +251,14 @@ const Dashboard = () => {
 
             {/* Ticket Modal */}
             {selectedTicket && (
-                <TicketModal team={selectedTicket} onClose={() => setSelectedTicket(null)} />
+                <SuccessScreen 
+                    data={selectedTicket}
+                    eventName={selectedTicket.event.name}
+                    teamName={selectedTicket.teamName}
+                    teamSize={selectedTicket.members.length}
+                    isVgu={isInternal(selectedTicket)}
+                    onHome={() => setSelectedTicket(null)}
+                />
             )}
         </div>
     );

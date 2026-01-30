@@ -45,6 +45,8 @@ const RegisterForm = () => {
         emailId: ''
     });
 
+    console.log(formData, 'form');
+
     // --- 2. DATA FETCHING ---
     useEffect(() => {
         const fetchData = async () => {
@@ -234,7 +236,6 @@ const RegisterForm = () => {
         );
     }
 
-    console.log(registrationSuccessData + ' registration data');
 
     // Optimized render guard
     if (step === 'SUCCESS' && registrationSuccessData?.ticketCode) {

@@ -3,11 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { updateTeamInCache } from '../index.js';
+import sendEmail from "../utils/email.js";
+
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+
 
 /**
  * STEP 1: Create Order
@@ -38,8 +41,10 @@ export const submitRegistration = async (req, res) => {
         const {
             teamName, eventId, collegeId,
             customCollegeName, departmentId,
-            razorpay_order_id, razorpay_payment_id, razorpay_signature , eamilId
+            razorpay_order_id, razorpay_payment_id, razorpay_signature, emailId
         } = req.body;
+
+
 
         const secretCode = req.body.secretCode?.trim().toUpperCase();
         const isVgu = req.body.isVgu === true || req.body.isVgu === 'true';
@@ -135,7 +140,7 @@ export const submitRegistration = async (req, res) => {
             const team = await tx.team.create({
                 data: {
                     teamName,
-                    teamEmail: eamilId,
+                    teamEmail: emailId,
                     paymentStatus: "APPROVED",
                     transactionId: isVgu ? `VGU_INTERNAL_${Date.now()}` : razorpay_payment_id,
                     ticketCode: (!isVgu || event.allowOutside)
@@ -177,6 +182,18 @@ export const submitRegistration = async (req, res) => {
         // Update Cache in background
         if (result.ticketCode) {
             updateTeamInCache(result.id).catch(console.error);
+        }
+
+        // Send confirmation email
+        if (emailId) {
+            const subject = 'Registration Successful for Panache!';
+            const templateData = {
+                teamName: result.teamName,
+                ticketCode: result.ticketCode || 'VGU-INTERNAL',
+                eventName: event.name,
+                teamSize: members.length
+            };
+            sendEmail(emailId, subject, 'eventRegistration', templateData).catch(console.error);
         }
 
         return res.status(201).json({
