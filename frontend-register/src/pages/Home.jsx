@@ -11,10 +11,14 @@ import NoiseOverlay from "../components/common/NoiseOverlay";
 import RegistrationModal from "../components/common/RegistrationModal";
 import Hero from "../components/home/Hero";
 import Statistics from "../components/home/Statistics";
-import Domains from "../components/home/Domains";
+
 import Sponsors from "../components/home/Sponsors";
 import Faq from "../components/home/Faq";
 import Footer from "../components/home/Footer";
+import Performers from "@/components/home/Performers";
+import About from "@/components/home/About";
+import Developers from "@/components/home/Developers";
+// import { Domains } from "@/components/home/Domains";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -107,10 +111,19 @@ const Home = () => {
           className="fixed top-0 left-0 w-full z-10 overflow-hidden will-change-transform"
         >
           <Hero setShowModal={setShowModal}/>
-          <Statistics />
-          <Domains />
+          {/* <Statistics />
+          <Performers/>
           <Sponsors />
+          <About/>
           <Faq />
+          <Footer setShowModal={setShowModal}/> */}
+          <Performers/>
+          <Sponsors />
+          <Developers/>
+          <About/>
+          <Faq />
+          <Statistics />
+
           <Footer setShowModal={setShowModal}/>
         </motion.div>
       </div>
