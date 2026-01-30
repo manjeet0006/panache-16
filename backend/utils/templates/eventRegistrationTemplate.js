@@ -3,8 +3,8 @@ export const eventRegistrationTemplate = (data) => {
   const displayEvent = eventName || "Panache 2026";
   const displaySize = teamSize ? `${teamSize} Members` : "Full Squad";
   
-  // 🔴 IMPORTANT: Replace these with your actual URLs
-  const logoUrl = "https://res.cloudinary.com/dkw4yjuze/image/upload/v1769795596/image_hty7ds.png"; // Must be a public https:// link
+// ✅ YOUR CLOUDINARY LOGO IS HERE
+  const logoUrl = "https://res.cloudinary.com/duqxp1ejg/image/upload/v1769798057/image_x0m4cb.png";
   const websiteUrl = "https://panache-16.vercel.app/login"; // Your live website link
 
   return `
