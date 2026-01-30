@@ -143,7 +143,7 @@ export const submitRegistration = async (req, res) => {
                     teamEmail: emailId,
                     paymentStatus: "APPROVED",
                     transactionId: isVgu ? `VGU_INTERNAL_${Date.now()}` : razorpay_payment_id,
-                    ticketCode: (!isVgu || event.allowOutside)
+                    ticketCode: (!isVgu && event.allowOutside)
                         ? `PAN-${uuidv4().slice(0, 6).toUpperCase()}`
                         : null,
                     event: { connect: { id: eventId } },
