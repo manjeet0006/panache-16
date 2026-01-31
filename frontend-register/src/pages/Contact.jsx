@@ -1,29 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-    MapPin, Mail, Phone, Send, Globe,
+    MapPin, Mail, Phone, Send,
     MessageSquare, User, AtSign,
     Github, Instagram, Linkedin, Twitter,
-    FileText // Added missing import
+    FileText, Loader2
 } from "lucide-react";
-import { cn } from "../lib/utils"; // Ensure you have a cn utility or use the one defined below
+import { toast } from "sonner"; // Ensure you have sonner installed, or remove toast calls
 
+// --- CONFIGURATION ---
+// 🔴 REPLACE THIS WITH YOUR ACTUAL GOOGLE APPS SCRIPT URL
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAo8I-QSaeKgzdw1b5WwRUDmzH90CaMWag8W_y3IjZ2x0QeausLBeMQ3-4Jtnjnzlk/exec";
 
-const ContactInput = ({ icon: Icon, type, placeholder, rows }) => (
+// Updated Input Component to handle State
+const ContactInput = ({ icon: Icon, type, placeholder, rows, name, value, onChange, required }) => (
     <div className="group relative">
         <div className="absolute top-3 left-4 text-gray-500 group-focus-within:text-pink-500 transition-colors">
             <Icon size={18} />
         </div>
         {type === 'textarea' ? (
             <textarea
+                name={name}
+                value={value}
+                onChange={onChange}
                 rows={rows || 4}
                 placeholder={placeholder}
+                required={required}
                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-pink-500/50 focus:bg-white/10 transition-all resize-none text-sm"
             />
         ) : (
             <input
                 type={type}
+                name={name}
+                value={value}
+                onChange={onChange}
                 placeholder={placeholder}
+                required={required}
                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-pink-500/50 focus:bg-white/10 transition-all text-sm"
             />
         )}
@@ -41,12 +53,54 @@ const SocialButton = ({ icon: Icon, href }) => (
     </a>
 );
 
-
-//    MAIN PAGE
-
 const Contact = () => {
+    // --- FORM STATE ---
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        Name: "",
+        Email: "",
+        Subject: "",
+        Message: ""
+    });
+
+    // Handle input changes
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            // We use 'no-cors' mode because Google Script doesn't return standard CORS headers
+            // This means we won't get a standard JSON response back, but the request will succeed.
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            // If using 'sonner' for toasts:
+            toast.success("Signal Transmitted! We will contact you shortly.");
+            // Reset form
+            setFormData({ Name: "", Email: "", Subject: "", Message: "" });
+
+        } catch (error) {
+            console.error("Submission Error:", error);
+            // If using 'sonner' for toasts:
+            toast.error("Transmission Failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-[#030303] text-white selection:bg-pink-500/30 overflow-x-hidden pt-20">
+        <div className="min-h-screen bg-[#030303] text-white selection:bg-pink-500/30 overflow-x-hidden pt-15">
 
             {/* Background FX */}
             <div className="fixed inset-0 pointer-events-none">
@@ -91,6 +145,7 @@ const Contact = () => {
                         viewport={{ once: true }}
                         className="space-y-8"
                     >
+                        {/* Info Card */}
                         <div className="p-8 rounded-[2rem] bg-[#0A0A0A] border border-white/10 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-bl-[100px] transition-all group-hover:bg-pink-500/10" />
 
@@ -129,8 +184,8 @@ const Contact = () => {
                                     </div>
                                     <div>
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Hotline</h4>
-                                        <p className="text-sm font-medium text-white">+91 96617 57779 (Vishal)</p>
-                                        <p className="text-sm font-medium text-white">+91 78498 63839 (Tarun)</p>
+                                        <p className="text-sm font-medium text-white">+91 96932 25350 (Manjeet)</p>
+                                        <p className="text-sm font-medium text-white">+91 95089 08582 (Harshit)</p>
                                     </div>
                                 </div>
                             </div>
@@ -143,16 +198,16 @@ const Contact = () => {
                             </div>
                         </div>
 
-                        {/* Fixed Map URL */}
+                        {/* Map */}
                         <div className="h-64 w-full rounded-[2rem] overflow-hidden border border-white/10 relative transition-all duration-500">
                             <iframe
-                                src="https://maps.google.com/maps?q=Vivekananda+Global+University+Jaipur&t=n&z=16&ie=UTF8&iwloc=&output=embed"
+                                src="https://maps.google.com/maps?q=Vivekananda+Global+University+Jaipur&t=n&z=16&ie=UTF8&iwloc=&output=embed" 
                                 width="100%"
                                 height="100%"
                                 style={{ border: 0 }}
                                 allowFullScreen=""
                                 loading="lazy"
-                                className="opacity-70"
+                                className="opacity-70 grayscale-50 hover:grayscale-0 transition-all duration-500"
                             ></iframe>
                             <div className="absolute inset-0 pointer-events-none border-[6px] border-black/20 rounded-[2rem]" />
                         </div>
@@ -170,16 +225,57 @@ const Contact = () => {
                                 <p className="text-xs text-gray-500 uppercase tracking-widest">We respond within 24 hours.</p>
                             </div>
 
-                            <form className="space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <ContactInput icon={User} type="text" placeholder="Your Name" />
-                                    <ContactInput icon={AtSign} type="email" placeholder="Email Address" />
+                                    <ContactInput
+                                        icon={User}
+                                        type="text"
+                                        name="Name"
+                                        placeholder="Your Name"
+                                        value={formData.Name}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <ContactInput
+                                        icon={AtSign}
+                                        type="email"
+                                        name="Email"
+                                        placeholder="Email Address"
+                                        value={formData.Email}
+                                        onChange={handleChange}
+                                        required
+                                    />
                                 </div>
-                                <ContactInput icon={MessageSquare} type="text" placeholder="Subject / Query Type" />
-                                <ContactInput icon={FileText} type="textarea" placeholder="Describe your query..." rows={6} />
+                                <ContactInput
+                                    icon={MessageSquare}
+                                    type="text"
+                                    name="Subject"
+                                    placeholder="Subject / Query Type"
+                                    value={formData.Subject}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <ContactInput
+                                    icon={FileText}
+                                    type="textarea"
+                                    name="Message"
+                                    placeholder="Describe your query..."
+                                    rows={6}
+                                    value={formData.Message}
+                                    onChange={handleChange}
+                                    required
+                                />
 
-                                <button type="button" className="group w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-pink-500 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-3 mt-4 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)]">
-                                    Transmit Message <Send size={18} className="group-hover:translate-x-1 transition-transform" />
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="group w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-pink-500 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-3 mt-4 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)] disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? (
+                                        <>Transmitting... <Loader2 size={18} className="animate-spin" /></>
+                                    ) : (
+                                        <>Transmit Message <Send size={18} className="group-hover:translate-x-1 transition-transform" /></>
+                                    )}
                                 </button>
                             </form>
                         </div>

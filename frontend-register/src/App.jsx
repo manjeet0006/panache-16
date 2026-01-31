@@ -20,6 +20,7 @@ import ConcertBooking from './pages/ConcertBooking';
 
 import TicketDashboard from './pages/TicketDashboard';
 import AboutSection from './pages/AboutSection';
+import ScoreBoard from './pages/ScoreBoard';
 
 
 
@@ -71,6 +72,7 @@ function App() {
             <Route path="/concerts/book/:id" element={<ConcertBooking />} />
             <Route path="/ticket-dashboard" element={<TicketDashboard />}/>
             <Route path='/about' element={<AboutSection/>}/>
+            <Route path='/score-board' element={<ScoreBoard/>}/>
 
 
 
@@ -88,7 +90,7 @@ function App() {
 
         <Footer />
 
-        <Toaster theme="dark" richColors position="top-right" />
+        <Toaster theme="dark" richColors position="top-right" closeButton />
       </div>
     </Router>
   );

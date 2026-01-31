@@ -30,7 +30,7 @@ export const loginWithSecretCode = async (req, res) => {
         const token = jwt.sign(
             { id: identity.id, code: username },
             process.env.JWT_SECRET,
-            { expiresIn: '7d' }
+            { expiresIn: '1d' }
         );
 
         res.json({

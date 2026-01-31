@@ -17,22 +17,22 @@ const TEAM = [
       linkedin: "https://www.linkedin.com/in/manjeet-kumar-50a463301/",
       instagram: "https://www.instagram.com/manjeet_rajput_0006",
     },
-    tech: ["React", "Next.js", "Node", "AWS"],
+    tech: ["React", "Next.js", "Node" , "Fullstack" , "UI/UX"],
     accent: "group-hover:text-purple-400",
     border: "group-hover:border-purple-500/50"
   },
   {
     id: 2,
-    name: "Harshit",
+    name: "Harshit Choudhary",
     role: "Technical Team Member",
     sub: "Systems Engineer",
     image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=1000&auto=format&fit=crop", 
     links: {
-      github: "#",
-      linkedin: "#",
-      instagram: "#",
+      github: "https://github.com/harshitinnetin",
+      linkedin: "https://www.linkedin.com/in/harshitchoudhayin?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+      instagram: "https://www.instagram.com/harshitchoudhary.in?igsh=aGcxZ253dGE5aGJ2",
     },
-    tech: ["Fullstack", "DevOps", "UI/UX"],
+    tech: ["Fullstack","React", "Next.js", "Node" , "UI/UX"],
     accent: "group-hover:text-cyan-400",
     border: "group-hover:border-cyan-500/50"
   },

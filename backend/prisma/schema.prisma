@@ -332,3 +332,12 @@ enum TicketTier {
   GOLD
   PLATINUM
 }
+
+
+model LeaderBoard{
+  id String @id @default(uuid())
+  teamName String
+  score   String
+  collegeName String?
+  deptName   String?
+}

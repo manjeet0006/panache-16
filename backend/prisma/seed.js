@@ -275,16 +275,16 @@ const prisma = new PrismaClient();
 
 
 
-async function main() {
-  console.log("🚀 Starting incremental seed...");
+// async function main() {
+//   console.log("🚀 Starting incremental seed...");
 
-  // 1. Seed New External Colleges
-  // console.log("🏫 Seeding Additional External Colleges...");
-  const externalColleges = [
-    { name: 'SKIT', city: 'Jaipur' },
-    { name: 'NIMS', city: 'Jaipur' }, // Changed Pilani to Jaipur (common location) or keep as is
-    { name: 'JECRC', city: 'Jaipur' } // Changed Jodhpur to Jaipur (common location) or keep as is
-  ];
+//   // 1. Seed New External Colleges
+//   // console.log("🏫 Seeding Additional External Colleges...");
+//   const externalColleges = [
+//     { name: 'SKIT', city: 'Jaipur' },
+//     { name: 'NIMS', city: 'Jaipur' }, // Changed Pilani to Jaipur (common location) or keep as is
+//     { name: 'JECRC', city: 'Jaipur' } // Changed Jodhpur to Jaipur (common location) or keep as is
+//   ];
 
   // for (const col of externalColleges) {
   //   // Check if exists to avoid unique constraint errors
@@ -301,40 +301,96 @@ async function main() {
   // }
 
   // 2. Generate Invite Codes
-  console.log("🔑 Generating Secure Invite Codes...");
+//   console.log("🔑 Generating Secure Invite Codes...");
   
-  // FETCH EVENTS FROM DB (Fixes 'events is not defined' error)
-  const globalEvents = await prisma.event.findMany({
-    where: { allowOutside: true }
+//   // FETCH EVENTS FROM DB (Fixes 'events is not defined' error)
+//   const globalEvents = await prisma.event.findMany({
+//     where: { allowOutside: true }
+//   });
+
+//   if (globalEvents.length === 0) {
+//     console.log("⚠️ No external events found in DB. Please run the full seed first.");
+//     return;
+//   }
+
+//   for (const ev of globalEvents) {
+//     // Generate a clean prefix (first 3 chars, uppercase, no spaces)
+//     const prefix = ev.name.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase();
+
+//     for (let i = 1; i <= 4; i++) {
+//       const code = `EXT-${prefix}-${120 + i}`;
+
+//       // Try/Catch to safely skip duplicates without crashing
+//       try {
+//         await prisma.eventInvite.create({
+//           data: { code: code, eventId: ev.id }
+//         });
+//         console.log(`   👉 Generated ${code} for ${ev.name}`);
+//       } catch (error) {
+//         // Code likely exists, ignore
+//       }
+//     }
+//   }
+
+//   console.log("🏁 Incremental seed complete!");
+// }
+
+// main()
+//   .catch((e) => { console.error(e); process.exit(1); })
+//   .finally(async () => { await prisma.$disconnect(); });
+
+
+
+
+async function main() {
+  console.log('🌱 Starting LeaderBoard seed...');
+
+  // 1. Clear existing data (Optional: Remove if you want to keep old data)
+  await prisma.leaderBoard.deleteMany({});
+  console.log('🧹 Cleared existing leaderboard entries.');
+
+  // 2. Define 19 Departments with realistic dummy data
+  const leaderBoardData = [
+    { teamName: "Code Titans", score: "98.5", deptName: "Computer Science (CSE)" },
+    { teamName: "Cyber Sentinels", score: "96.0", deptName: "Cyber Security" },
+    { teamName: "AI Innovators", score: "95.5", deptName: "AI & Data Science" },
+    { teamName: "Robo Corps", score: "94.0", deptName: "Robotics & Automation" },
+    { teamName: "Electro Buzz", score: "92.5", deptName: "Electronics (ECE)" },
+    { teamName: "Web Weavers", score: "91.0", deptName: "Information Technology (IT)" },
+    { teamName: "Power Rangers", score: "89.5", deptName: "Electrical Engineering (EE)" },
+    { teamName: "Gear Heads", score: "88.0", deptName: "Mechanical Engineering (ME)" },
+    { teamName: "Structura", score: "87.5", deptName: "Civil Engineering (CE)" },
+    { teamName: "Bio Hackers", score: "86.0", deptName: "Biotechnology" },
+    { teamName: "Chem Catalysts", score: "85.5", deptName: "Chemical Engineering" },
+    { teamName: "Aero Flyers", score: "84.0", deptName: "Aerospace Engineering" },
+    { teamName: "Auto Motives", score: "83.5", deptName: "Automobile Engineering" },
+    { teamName: "Mech Masters", score: "82.0", deptName: "Mechatronics" },
+    { teamName: "Design Zen", score: "80.5", deptName: "Architecture" },
+    { teamName: "Space Creators", score: "79.0", deptName: "Interior Design" },
+    { teamName: "Vogue Squad", score: "78.5", deptName: "Fashion Design" },
+    { teamName: "Biz Tycoons", score: "77.0", deptName: "Business Admin (BBA)" },
+    { teamName: "CSI Investigators", score: "75.5", deptName: "Forensic Science" },
+  ];
+
+  // 3. Insert Data
+  // We add 'collegeName: "VGU"' to all of them
+  const dataWithCollege = leaderBoardData.map((entry) => ({
+    ...entry,
+    // collegeName: "VGU Campus",
+  }));
+
+  await prisma.leaderBoard.createMany({
+    data: dataWithCollege,
   });
 
-  if (globalEvents.length === 0) {
-    console.log("⚠️ No external events found in DB. Please run the full seed first.");
-    return;
-  }
-
-  for (const ev of globalEvents) {
-    // Generate a clean prefix (first 3 chars, uppercase, no spaces)
-    const prefix = ev.name.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase();
-
-    for (let i = 1; i <= 4; i++) {
-      const code = `EXT-${prefix}-${120 + i}`;
-
-      // Try/Catch to safely skip duplicates without crashing
-      try {
-        await prisma.eventInvite.create({
-          data: { code: code, eventId: ev.id }
-        });
-        console.log(`   👉 Generated ${code} for ${ev.name}`);
-      } catch (error) {
-        // Code likely exists, ignore
-      }
-    }
-  }
-
-  console.log("🏁 Incremental seed complete!");
+  console.log(`✅ Successfully seeded ${leaderBoardData.length} leaderboard entries!`);
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

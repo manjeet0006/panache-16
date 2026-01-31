@@ -9,6 +9,7 @@ import ModernButton from "../common/ModernButton";
 
 // --- DATA ---
 const ARTISTS = [
+    
 
     {
         id: "past-2",
@@ -41,6 +42,7 @@ const ARTISTS = [
         isRevealable: true, // ✅ Clickable (Moderate blur when closed)
         color: "from-yellow-400 to-orange-500",
     },
+
     {
         id: "future-2",
         name: "Mystery Reveal",
@@ -74,11 +76,19 @@ const FloatingParticles = () => {
 // --- SUB-COMPONENT: Artist Panel ---
 const ArtistPanel = ({ artist, isActive, onClick, onTicketClick }) => {
 
+    const playSound = () => {
+        // Simple pop sound effect (Base64 encoded to avoid external file issues)
+        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3");
+        audio.volume = 0.2;
+        audio.play().catch(e => console.log("Audio play failed:", e));
+    };
+
     const handleClick = () => {
         onClick();
 
         // Only trigger Confetti if it IS revealable and locked
         if (artist.isRevealable && artist.isLocked && !isActive) {
+            playSound();
             const end = Date.now() + 1000;
             const colors = ['#fbbf24', '#f59e0b', '#ffffff'];
             (function frame() {

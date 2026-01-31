@@ -16,10 +16,10 @@ const ModernButton = ({ children, onClick, variant = "primary" }) => {
             `}
     >
       {isPrimary && (
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 group-hover:scale-110 transition-transform duration-500 ease-out" />
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-600  to-purple-600 group-hover:scale-110 transition-transform duration-500 ease-out" />
       )}
       {isPrimary && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 ease-in-out" />
       )}
       <span className="relative z-10 flex items-center justify-center gap-3">
         {React.Children.map(children, (child) => {
