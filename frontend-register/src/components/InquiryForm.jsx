@@ -122,20 +122,20 @@ const InquiryForm = ({ inquiryData, setInquiryData, onSubmit, onBack, loading })
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-4 select-none animate-in fade-in duration-700">
-      
+    <div className="w-full max-w-xl mt-24 mx-auto space-y-4 select-none animate-in fade-in duration-700">
+       
       {/* NAVIGATION */}
       <div className="flex items-center justify-between mb-8 px-2">
         <button type="button" onClick={onBack} className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors">
-          <ArrowLeft size={12} /> Return_to_Gateway
+          <ArrowLeft size={12} /> Return
         </button>
         <div className="flex items-center gap-3">
-          <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-gray-700">Registry // Local_Cache</span>
+          <span className=" text-[8px] font-bold uppercase tracking-[0.3em] text-gray-700">Registry // Local_Cache</span>
           <div className="h-1 w-1 rounded-full bg-pink-500 shadow-[0_0_8px_#ec4899]" />
         </div>
       </div>
 
-      <div className="bg-[#0A0A0A] border border-white/[0.08] rounded-[3rem] p-10 md:p-14 relative shadow-2xl">
+      <div className="bg-[#0A0A0A] border border-white/[0.08] rounded-[3rem] p-8 md:p-14 relative shadow-2xl overflow-visible">
         <header className="mb-12">
           <h2 className="text-5xl font-black uppercase italic tracking-tighter text-white leading-none">
             Request <span className="text-pink-500">Access</span>
@@ -145,14 +145,14 @@ const InquiryForm = ({ inquiryData, setInquiryData, onSubmit, onBack, loading })
         <form onSubmit={onSubmit} className="space-y-7">
           <div className="grid grid-cols-1 gap-6">
             
-            <RegistryField icon={User} label="Personnel Name" placeholder="Full Name" name="name" value={inquiryData.name} onChange={handleInputChange} />
+            <RegistryField icon={User} label="Person Name" placeholder="Full Name" name="name" value={inquiryData.name} onChange={handleInputChange} />
             
             {/* SEARCHABLE COLLEGE INPUT */}
-            <div className="relative group/field" ref={dropdownRef}>
+            <div className="relative group/field z-50" ref={dropdownRef}>
               <div className="flex items-center justify-between mb-2.5 px-1">
                 <div className="flex items-center gap-2">
                     <Globe size={12} className={inquiryData.collegeName && !isOther ? 'text-green-500' : 'text-pink-500/40'} />
-                    <label className="text-[8px] font-bold uppercase tracking-[0.2em] text-gray-500">Institution Origin</label>
+                    <label className="text-[12px] font-bold uppercase tracking-[0.2em] text-gray-500">Institute Name</label>
                 </div>
                 {inquiryData.collegeName && !isOther && (
                     <span className="text-[7px] font-black text-green-500 uppercase tracking-widest flex items-center gap-1 animate-in fade-in">
@@ -172,18 +172,23 @@ const InquiryForm = ({ inquiryData, setInquiryData, onSubmit, onBack, loading })
                     if (inquiryData.collegeName) handleInputChange('collegeName', '');
                   }}
                   onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                  className={`w-full bg-white/[0.02] border p-4 rounded-xl text-[12px] font-semibold tracking-wide text-white outline-none transition-all placeholder:text-gray-800 
+                  // Added 'pr-10' to prevent text overlapping with verification icon
+                  className={`w-full bg-white/[0.02] border p-4 pr-10 rounded-xl text-[12px] font-semibold tracking-wide text-white outline-none transition-all placeholder:text-gray-800 
                     ${inquiryData.collegeName && !isOther ? 'border-green-500/20' : 'border-white/5 focus:border-pink-500/30'}`}
                 />
                 
-                {/* DROPDOWN MENU */}
+                {/* FIXED DROPDOWN UI:
+                   1. Added 'max-h-[250px]' to limit height
+                   2. Added 'overflow-y-auto' for scrolling
+                   3. Added 'scrollbar-hide' (optional) or standard scrolling
+                */}
                 {showDropdown && (
-                  <div className="absolute top-full left-0 w-full mt-2 bg-[#0F0F0F] border border-white/10 rounded-2xl overflow-hidden z-[999] shadow-2xl">
+                  <div className="absolute top-full left-0 w-full mt-2 bg-[#0F0F0F] border border-white/10 rounded-2xl z-[100] shadow-2xl max-h-[250px] overflow-y-auto custom-scrollbar">
                     {suggestions.map((univ, i) => (
                       <div
                         key={i}
                         onMouseDown={() => handleSelect(univ.name)}
-                        className="w-full px-5 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-pink-500 hover:text-white border-b border-white/5 last:border-0 flex items-center justify-between cursor-pointer group"
+                        className="w-full px-5 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-pink-500 hover:text-white border-b border-white/5 last:border-0 flex items-center justify-between cursor-pointer group transition-colors duration-150"
                       >
                         <span className="truncate pr-4">{univ.name}</span>
                         <ArrowRight size={12} className="opacity-20 group-hover:opacity-100" />
@@ -191,7 +196,7 @@ const InquiryForm = ({ inquiryData, setInquiryData, onSubmit, onBack, loading })
                     ))}
                     <div
                       onMouseDown={() => handleSelect("OTHER")}
-                      className="w-full px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-pink-500 bg-pink-500/5 hover:bg-pink-500 hover:text-white cursor-pointer flex items-center justify-between"
+                      className="w-full px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-pink-500 bg-pink-500/5 hover:bg-pink-500 hover:text-white cursor-pointer flex items-center justify-between sticky bottom-0 backdrop-blur-md"
                     >
                       <span>Institution Not Listed</span>
                       <Edit3 size={12} />
@@ -217,8 +222,8 @@ const InquiryForm = ({ inquiryData, setInquiryData, onSubmit, onBack, loading })
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <RegistryField icon={Phone} label="Communication" placeholder="WhatsApp No" name="phone" value={inquiryData.phone} onChange={handleInputChange} />
-              <RegistryField icon={Mail} label="Digital Registry" placeholder="Email Address" name="email" type="email" value={inquiryData.email} onChange={handleInputChange} />
+              <RegistryField icon={Phone} label="Phone No." placeholder="+91 9881342..." name="phone" value={inquiryData.phone} onChange={handleInputChange} />
+              <RegistryField icon={Mail} label="Email Id." placeholder="Email Address" name="email" type="email" value={inquiryData.email} onChange={handleInputChange} />
             </div>
           </div>
 
@@ -240,12 +245,12 @@ const RegistryField = ({ icon: Icon, label, placeholder, name, value, onChange, 
   <div className="relative group/field">
     <div className="flex items-center gap-2 mb-2.5 px-1">
       <Icon size={12} className="text-pink-500/40 group-focus-within/field:text-pink-500 transition-colors" />
-      <label className="text-[8px] font-bold uppercase tracking-[0.2em] text-gray-500">{label}</label>
+      <label className="text-[12px] font-bold uppercase tracking-[0.2em] text-gray-500">{label}</label>
     </div>
     <input
       type={type} placeholder={placeholder} value={value || ''}
       onChange={e => onChange(name, e.target.value)} required
-      className="w-full bg-white/[0.02] border border-white/5 p-4 rounded-xl text-[12px] font-semibold tracking-wide text-white outline-none focus:border-pink-500/30 transition-all placeholder:text-gray-800"
+      className="w-full bg-white/[0.02] border border-white/5 p-4 rounded-xl text-[14px] font-semibold tracking-wide text-white outline-none focus:border-pink-500/30 transition-all placeholder:text-gray-800"
     />
   </div>
 );

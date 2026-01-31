@@ -63,6 +63,7 @@ export const getMyHistory = async (req, res) => {
                     select: {
                         name: true,
                         category: true,
+                        eventPrice: true,
                     }
                 },
                 members: true,

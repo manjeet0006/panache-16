@@ -74,7 +74,7 @@ const EventsExplorer = () => {
   if (loading) return <EventSkeleton/>
 
   return (
-    <div className="min-h-screen bg-[#050505] pt-13 text-white  pb-5 relative selection:bg-pink-500/30">
+    <div className="min-h-screen p-2 bg-[#050505] pt-13 text-white  pb-5 relative selection:bg-pink-500/30">
 
       {/* Background Atmosphere */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none z-0">
@@ -202,7 +202,7 @@ const EventsExplorer = () => {
         </header>
 
         {/* Grid Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 p-3 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.length === 0 ? (
             <div className="col-span-full py-20 text-center rounded-[3rem] border border-dashed border-white/10">
               <ShieldAlert size={40} className="mx-auto text-gray-700 mb-4" />
@@ -223,13 +223,13 @@ const EventsExplorer = () => {
                 <div className="relative z-10">
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex flex-col gap-2">
-                      <span className={`w-fit text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded shadow-lg italic ${event.category === 'PANACHE' ? 'bg-purple-500 shadow-purple-500/20' :
+                      <span className={`w-fit text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded shadow-lg italic ${event.category === 'PANACHE' ? 'bg-purple-500 shadow-purple-500/20' :
                           event.category === 'PRAGATI' ? 'bg-cyan-500 shadow-cyan-500/20' :
                             'bg-pink-500 shadow-pink-500/20'
                         }`}>
                         {event.category}
                       </span>
-                      <div className="flex items-center gap-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase tracking-widest">
                         <Calendar size={12} className="text-pink-500" />
                         {event.dateLabel || "TBA"}
                       </div>
@@ -244,14 +244,14 @@ const EventsExplorer = () => {
                   <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-3 leading-[0.9] group-hover:text-pink-500 transition-colors">
                     {event.name}
                   </h3>
-                  <p className="text-gray-500 text-[11px] font-medium leading-relaxed mb-2 line-clamp-3">
+                  <p className="text-gray-500 text-[13px] font-medium leading-relaxed mb-2 line-clamp-3">
                     {event.description}
                   </p>
 
                   <div className="mb-4">
                     <button
                       onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
-                      className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-pink-500/60 hover:text-pink-500 transition-all"
+                      className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-pink-500/80 hover:text-pink-500 transition-all"
                     >
                       {expandedEvent === event.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       {expandedEvent === event.id ? "Close Rules" : "Read Rulebook"}
@@ -263,7 +263,7 @@ const EventsExplorer = () => {
                           {event.guidelines?.map((rule, idx) => (
                             <div key={idx} className="flex gap-3">
                               <div className="w-1 h-1 rounded-full bg-pink-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(236,72,153,1)]"></div>
-                              <p className="text-[10px] text-gray-400 font-medium leading-normal italic">{rule}</p>
+                              <p className="text-[12px] text-gray-400 font-light leading-normal italic">{rule}</p>
                             </div>
                           ))}
                         </div>
@@ -276,7 +276,7 @@ const EventsExplorer = () => {
                   <div className="flex mx-auto items-center gap-6">
                     <div className="flex items-center gap-2 text-gray-400">
                       <Users size={14} className="text-pink-500/50" />
-                      <span className="text-[11px] font-black uppercase tracking-widest">{event.minPlayers}-{event.maxPlayers} Players</span>
+                      <span className="text-[12px] font-black uppercase tracking-widest">{event.minPlayers}-{event.maxPlayers} Players</span>
                     </div>
                     {event.eventPrice > 0 && !isVgu ? (
                       <div className="flex items-center gap-1 text-gray-400">
@@ -287,14 +287,14 @@ const EventsExplorer = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-1 text-gray-400">
-                        <span className="text-[11px] font-black uppercase tracking-widest text-green-500">FREE</span>
+                        <span className="text-[12px] font-black uppercase tracking-widest text-green-500">FREE</span>
                       </div>
                     )}
                   </div>
 
                   <button
                     onClick={() => navigate(`/register/${event.id}?isVgu=${isVgu}`)}
-                    className="w-full bg-white text-black py-4 rounded-xl font-extrabold uppercase text-[12px] tracking-[0.2em] transition-all hover:bg-pink-500 hover:text-white shadow-xl active:scale-[0.98] group-hover:shadow-pink-500/10"
+                    className="w-full bg-white text-black py-4 rounded-xl font-semibold uppercase text-[14px] tracking-[0.2em] transition-all hover:bg-pink-500 hover:text-white shadow-xl active:scale-[0.98] group-hover:shadow-pink-500/10"
                   >
                     Start Registration
                   </button>

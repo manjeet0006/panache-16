@@ -257,10 +257,10 @@ const RegisterForm = () => {
 
                 {/* GATEWAY: Code Verification for Outsiders */}
                 {!isVgu && step === 'CHECK' && (
-                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 text-center backdrop-blur-xl">
+                    <div className="bg-white/5 mt-25 border border-white/10 rounded-[2.5rem] p-10 text-center backdrop-blur-xl">
                         <Lock className="text-pink-500 mx-auto mb-6" size={40} />
                         <h2 className="text-3xl font-black uppercase italic mb-4">Verification Gateway</h2>
-                        <p className="text-gray-400 text-sm mb-10">Outside participants require a <strong>Secret Invite Code</strong>.</p>
+                        <p className="text-gray-400 text-[15px] mb-10">Outside participants require a <strong>Secret Invite Code</strong>.</p>
                         <div className="space-y-4">
                             <button onClick={() => setStep('FINAL')} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 hover:bg-pink-500 hover:text-white transition-all">
                                 I have a Code <ArrowRight size={18} />

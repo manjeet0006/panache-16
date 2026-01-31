@@ -19,6 +19,7 @@ import ConcertShowcase from './pages/ConcertShowcase';
 import ConcertBooking from './pages/ConcertBooking';
 
 import TicketDashboard from './pages/TicketDashboard';
+import AboutSection from './pages/AboutSection';
 
 
 
@@ -69,6 +70,7 @@ function App() {
             <Route path="/concerts" element={<ConcertShowcase />} />
             <Route path="/concerts/book/:id" element={<ConcertBooking />} />
             <Route path="/ticket-dashboard" element={<TicketDashboard />}/>
+            <Route path='/about' element={<AboutSection/>}/>
 
 
 
