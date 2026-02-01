@@ -40,38 +40,166 @@ export const adminLogin = async (req, res) => {
 
 // --- 1. EVENT & DEPT MANAGEMENT ---
 
+// --- 1. EVENT MANAGEMENT ---
+
+/**
+ * CREATE EVENT
+ */
 export const createEvent = async (req, res) => {
   try {
-    const event = await prisma.event.create({ data: req.body });
+    const {
+      name,
+      description,
+      category,
+      minPlayers,
+      maxPlayers,
+      allowOutside,
+      eventPrice,
+      eventDate,
+      dateLabel,
+      guidelines,
+      registrationOpen,
+    } = req.body;
+
+    const event = await prisma.event.create({
+      data: {
+        name,
+        description,
+        category,
+
+        minPlayers: Number(minPlayers),
+        maxPlayers: Number(maxPlayers),
+
+        allowOutside: Boolean(allowOutside),
+        eventPrice: eventPrice ?? "0",
+
+        eventDate: eventDate ? new Date(eventDate) : null,
+        dateLabel: dateLabel || null,
+
+        guidelines: Array.isArray(guidelines) ? guidelines : [],
+
+        registrationOpen:
+          typeof registrationOpen === "boolean"
+            ? registrationOpen
+            : true,
+      },
+    });
+
     res.status(201).json(event);
   } catch (error) {
+    console.error("Create Event Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
+/**
+ * GET EVENTS (CATEGORIZED)
+ */
 export const getEvents = async (req, res) => {
   try {
     const events = await prisma.event.findMany({
       orderBy: { createdAt: "desc" },
     });
-    res.json(events);
+
+    const categorized = {
+      PANACHE: { internal: [], outside: [] },
+      PRATISHTHA: { internal: [], outside: [] },
+      PRAGATI: { internal: [], outside: [] },
+    };
+
+    events.forEach(event => {
+      if (!categorized[event.category]) return;
+
+      if (event.allowOutside) {
+        categorized[event.category].outside.push(event);
+      } else {
+        categorized[event.category].internal.push(event);
+      }
+    });
+
+    res.json(categorized);
   } catch (error) {
+    console.error("Get Events Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
+/**
+ * UPDATE EVENT
+ */
+export const updateEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    const {
+      name,
+      description,
+      category,
+      minPlayers,
+      maxPlayers,
+      allowOutside,
+      eventPrice,
+      eventDate,
+      dateLabel,
+      guidelines,
+      registrationOpen,
+    } = req.body;
+
+    const event = await prisma.event.update({
+      where: { id: eventId },
+      data: {
+        name,
+        description,
+        category,
+
+        minPlayers: Number(minPlayers),
+        maxPlayers: Number(maxPlayers),
+
+        allowOutside: Boolean(allowOutside),
+        eventPrice: eventPrice ?? "0",
+
+        eventDate: eventDate ? new Date(eventDate) : null,
+        dateLabel: dateLabel || null,
+
+        guidelines: Array.isArray(guidelines) ? guidelines : [],
+
+        registrationOpen:
+          typeof registrationOpen === "boolean"
+            ? registrationOpen
+            : true,
+      },
+    });
+
+    res.json(event);
+  } catch (error) {
+    console.error("Update Event Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * DELETE EVENT
+ */
 export const deleteEvent = async (req, res) => {
   const { eventId } = req.params;
 
   try {
-    await prisma.event.delete({
-      where: { id: eventId },
-    });
+    await prisma.$transaction([
+      prisma.eventInvite.deleteMany({
+        where: { eventId },
+      }),
+      prisma.event.delete({
+        where: { id: eventId },
+      }),
+    ]);
+
     res.json({ message: "Event deleted successfully" });
   } catch (error) {
+    console.error("Delete Event Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Department Creation
 
@@ -117,7 +245,23 @@ export const appointJudgeToEvent = async (req, res) => {
 
 export const getAdminDashboardData = async (req, res) => {
   const { status, eventId, collegeId } = req.query;
+
   try {
+    // =========================
+    // 1️⃣ FETCH ALL EVENTS
+    // =========================
+    const events = await prisma.event.findMany({
+      select: {
+        id: true,
+        name: true,
+        allowOutside: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // =========================
+    // 2️⃣ FETCH TEAMS (FILTERED)
+    // =========================
     const teams = await prisma.team.findMany({
       where: {
         ...(status && { paymentStatus: status }),
@@ -128,15 +272,88 @@ export const getAdminDashboardData = async (req, res) => {
         event: true,
         college: true,
         members: true,
-        department: true
+        department: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
-    res.json(teams);
+
+    // =========================
+    // 📊 DASHBOARD STATS
+    // =========================
+
+    const totalRegistrations = teams.length;
+
+    let inCollege = 0;
+    let outCollege = 0;
+
+    const departmentStats = {};
+    const paymentAnalytics = {
+      APPROVED: 0,
+      PENDING: 0,
+      REJECTED: 0,
+    };
+
+    // =========================
+    // 3️⃣ INIT EVENT STATS (ALL EVENTS)
+    // =========================
+    const eventStats = {};
+
+    events.forEach((e) => {
+      eventStats[e.id] = {
+        id: e.id,
+        name: e.name,
+        allowOutside: e.allowOutside,
+        teams: [], // 👈 empty by default
+      };
+    });
+
+    // =========================
+    // 4️⃣ MAP TEAMS INTO EVENTS
+    // =========================
+    teams.forEach((t) => {
+      // College split (FIXED)
+      if (t.college?.isInternal) inCollege++;
+      else outCollege++;
+
+      // Event-wise teams
+      if (eventStats[t.eventId]) {
+        eventStats[t.eventId].teams.push({
+          id: t.id,
+          teamName: t.teamName,
+          college: t.college?.name || null,
+          paymentStatus: t.paymentStatus,
+        });
+      }
+
+      // Department-wise
+      const dept = t.department?.name || "Unknown";
+      departmentStats[dept] = (departmentStats[dept] || 0) + 1;
+
+      // Payment analytics
+      paymentAnalytics[t.paymentStatus]++;
+    });
+
+    // =========================
+    // 5️⃣ FINAL RESPONSE
+    // =========================
+    res.json({
+      teams,
+      stats: {
+        totalRegistrations,
+        inCollege,
+        outCollege,
+        totalEvents: events.length, // ✅ ALL EVENTS COUNT
+        departmentStats,
+        paymentAnalytics,
+        eventStats: Object.values(eventStats), // ✅ includes empty events
+      },
+    });
   } catch (error) {
+    console.error("Admin Dashboard Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // --- 4. DATA CORRECTION (The Power to Update) ---
 

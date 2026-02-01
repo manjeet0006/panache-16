@@ -32,7 +32,9 @@ router.get('/invites/available/:eventId', adminCtrl.getAvailableCodes);
 // 4. Infrastructure Management
 router.post('/crevents', adminCtrl.createEvent);
 router.get("/events", adminCtrl.getEvents);
+router.put("/events/:eventId", adminCtrl.updateEvent);
 router.delete("/events/:eventId", adminCtrl.deleteEvent);
+
 
 router.post('/departments', adminCtrl.createDepartment);
 
