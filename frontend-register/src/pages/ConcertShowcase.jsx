@@ -6,7 +6,9 @@ import {
   Music, Mic2, Star, Camera
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import API from '../api';
+
+import ConcertShowcaseSkeleton from '@/components/loading/ConcertShowcaseSkeleton';
+import API from '@/api';
 
 const ConcertShowcase = () => {
     const navigate = useNavigate();
@@ -31,9 +33,7 @@ const ConcertShowcase = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
-                <Loader2 className="text-pink-500 animate-spin" size={40} />
-            </div>
+            <ConcertShowcaseSkeleton/>
         );
     }
 

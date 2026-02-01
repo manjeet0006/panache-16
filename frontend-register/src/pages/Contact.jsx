@@ -1,18 +1,47 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     MapPin, Mail, Phone, Send,
     MessageSquare, User, AtSign,
     Github, Instagram, Linkedin, Twitter,
-    FileText, Loader2
+    FileText, CheckCircle2, Loader2
 } from "lucide-react";
-import { toast } from "sonner"; // Ensure you have sonner installed, or remove toast calls
+import { toast } from "sonner"; 
 
 // --- CONFIGURATION ---
-// 🔴 REPLACE THIS WITH YOUR ACTUAL GOOGLE APPS SCRIPT URL
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAo8I-QSaeKgzdw1b5WwRUDmzH90CaMWag8W_y3IjZ2x0QeausLBeMQ3-4Jtnjnzlk/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVWoLBA7DpjxhiwnJodVYpO23_cN3QYkNxltS4YMC5PGYFr-yRjJd1-g1IzonDeFxg/exec";
 
-// Updated Input Component to handle State
+// --- SUB-COMPONENT: SUCCESS POPUP ---
+const SuccessPopup = ({ onClose }) => (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        />
+        {/* Modal */}
+        <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+            className="relative bg-[#0A0A0A] border border-pink-500/30 p-8 rounded-3xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(34,197,94,0.2)]"
+        >
+            <div className="mx-auto w-16 h-16 bg-pink-500/10 rounded-full flex items-center justify-center mb-4 text-pink-500">
+                <CheckCircle2 size={32} />
+            </div>
+            <h3 className="text-2xl font-black uppercase italic text-white mb-2">Transmission Sent!</h3>
+            <p className="text-gray-400 text-sm mb-6">
+                Your signal has been received by our base station. We will contact you shortly.
+            </p>
+            <button 
+                onClick={onClose}
+                className="w-full py-3 bg-white text-black font-bold uppercase tracking-widest rounded-xl hover:bg-pink-500 hover:text-white transition-colors"
+            >
+                Close Signal
+            </button>
+        </motion.div>
+    </div>
+);
+
+// Input Component
 const ContactInput = ({ icon: Icon, type, placeholder, rows, name, value, onChange, required }) => (
     <div className="group relative">
         <div className="absolute top-3 left-4 text-gray-500 group-focus-within:text-pink-500 transition-colors">
@@ -55,48 +84,42 @@ const SocialButton = ({ icon: Icon, href }) => (
 
 const Contact = () => {
     // --- FORM STATE ---
-    const [loading, setLoading] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
     const [formData, setFormData] = useState({
         Name: "",
         Email: "",
+        Phone: "", // 1. Added Phone to State
         Subject: "",
         Message: ""
     });
 
-    // Handle input changes
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Handle form submission
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        setLoading(true);
 
-        try {
-            // We use 'no-cors' mode because Google Script doesn't return standard CORS headers
-            // This means we won't get a standard JSON response back, but the request will succeed.
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
+        const payload = { ...formData };
 
-            // If using 'sonner' for toasts:
-            toast.success("Signal Transmitted! We will contact you shortly.");
-            // Reset form
-            setFormData({ Name: "", Email: "", Subject: "", Message: "" });
+        console.log("SENDING DATA:", payload);
 
-        } catch (error) {
+        // Optimistic UI
+        setShowSuccess(true);
+        setFormData({ Name: "", Email: "", Phone: "", Subject: "", Message: "" }); // Reset Phone too
+
+        // Fire and Forget
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        })
+        .then(() => console.log("Background transmission successful."))
+        .catch((error) => {
             console.error("Submission Error:", error);
-            // If using 'sonner' for toasts:
-            toast.error("Transmission Failed. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+            toast.error("Network Error: Transmission failed. Please try again.");
+        });
     };
 
     return (
@@ -201,7 +224,7 @@ const Contact = () => {
                         {/* Map */}
                         <div className="h-64 w-full rounded-[2rem] overflow-hidden border border-white/10 relative transition-all duration-500">
                             <iframe
-                                src="https://maps.google.com/maps?q=Vivekananda+Global+University+Jaipur&t=n&z=16&ie=UTF8&iwloc=&output=embed" 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.8246830588647!2d75.89060697613628!3d26.78184566570535!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396dc91e898380fd%3A0xeee859ae1f1b64b0!2sVivekananda%20Global%20University!5e0!3m2!1sen!2sin!4v1709400000000!5m2!1sen!2sin"
                                 width="100%"
                                 height="100%"
                                 style={{ border: 0 }}
@@ -209,7 +232,6 @@ const Contact = () => {
                                 loading="lazy"
                                 className="opacity-70 grayscale-50 hover:grayscale-0 transition-all duration-500"
                             ></iframe>
-                            <div className="absolute inset-0 pointer-events-none border-[6px] border-black/20 rounded-[2rem]" />
                         </div>
                     </motion.div>
 
@@ -226,6 +248,7 @@ const Contact = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* 2x2 Grid for Inputs */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <ContactInput
                                         icon={User}
@@ -245,16 +268,27 @@ const Contact = () => {
                                         onChange={handleChange}
                                         required
                                     />
+                                    {/* Added Phone Input Here */}
+                                    <ContactInput
+                                        icon={Phone}
+                                        type="tel"
+                                        name="Phone"
+                                        placeholder="Phone Number"
+                                        value={formData.Phone}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <ContactInput
+                                        icon={MessageSquare}
+                                        type="text"
+                                        name="Subject"
+                                        placeholder="Subject"
+                                        value={formData.Subject}
+                                        onChange={handleChange}
+                                        required
+                                    />
                                 </div>
-                                <ContactInput
-                                    icon={MessageSquare}
-                                    type="text"
-                                    name="Subject"
-                                    placeholder="Subject / Query Type"
-                                    value={formData.Subject}
-                                    onChange={handleChange}
-                                    required
-                                />
+                                
                                 <ContactInput
                                     icon={FileText}
                                     type="textarea"
@@ -268,20 +302,21 @@ const Contact = () => {
 
                                 <button
                                     type="submit"
-                                    disabled={loading}
-                                    className="group w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-pink-500 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-3 mt-4 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)] disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="group w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-pink-500 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-3 mt-4 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)]"
                                 >
-                                    {loading ? (
-                                        <>Transmitting... <Loader2 size={18} className="animate-spin" /></>
-                                    ) : (
-                                        <>Transmit Message <Send size={18} className="group-hover:translate-x-1 transition-transform" /></>
-                                    )}
+                                    Transmit Message 
+                                    <Send size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </form>
                         </div>
                     </motion.div>
                 </div>
             </div>
+
+            {/* --- SUCCESS POPUP MODAL --- */}
+            <AnimatePresence>
+                {showSuccess && <SuccessPopup onClose={() => setShowSuccess(false)} />}
+            </AnimatePresence>
         </div>
     );
 };

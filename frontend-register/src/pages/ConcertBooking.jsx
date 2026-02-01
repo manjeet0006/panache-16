@@ -1,20 +1,14 @@
-// src/pages/ConcertBooking.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; 
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { toast } from 'sonner';
-
 import API from '../api';
-
-// FIX: Corrected path from 'hoooks' to 'hooks'
-
-
-import TicketModal from '../components/TicketModal'; // Adjusted based on standard structure
+import useRazorpay from '@/hooks/useRazorpay';
+import TicketModal from '../components/TicketModal';
 import SuccessView from '@/components/concert/SuccessView';
 import BookingForm from '@/components/concert/BookingForm';
-import ArtistShowcase from '@/components/concert/ArtistShowcase';
-import useRazorpay from '@/hooks/useRazorpay';
+import ConcertSkeleton from '@/components/loading/ConcertBooking';
 
 const ConcertBooking = () => {
     const { id } = useParams();
@@ -41,8 +35,9 @@ const ConcertBooking = () => {
                 const found = res.data;
                 if (found) {
                     setConcert(found);
-                    const firstAvailableTier = found.tierDetails?.find(t => !t.soldOut);
-                    setSelectedTier(firstAvailableTier);
+                    // Select first available tier
+                    const firstAvailableTier = found.tierDetails?.find(t => !t.soldOut && t.ticketsSold < t.ticketLimit);
+                    setSelectedTier(firstAvailableTier || null);
                 } else {
                     toast.error("Event not found");
                     navigate('/concerts');
@@ -82,9 +77,7 @@ const ConcertBooking = () => {
         });
     };
 
-    if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-pink-500" /></div>;
-
-    // Safety check: Ensure concert exists before rendering children
+    if (loading) return <ConcertSkeleton/>
     if (!concert) return null;
 
     if (purchasedTicket) {
@@ -92,42 +85,33 @@ const ConcertBooking = () => {
             <>
                 <SuccessView ticket={purchasedTicket} concert={concert} onOpenGate={() => setModalType('GATE')} onOpenArena={() => setModalType('CONCERT')} />
                 {modalType && (
-                    <TicketModal 
-                        ticket={{...purchasedTicket, concert: concert}} 
-                        type={modalType} // Simplified
-                        onClose={() => setModalType(null)} 
-                    />
+                    <TicketModal ticket={{...purchasedTicket, concert: concert}} type={modalType} onClose={() => setModalType(null)} />
                 )}
             </>
         );
     }
 
     return (
-        <div ref={containerRef} className="min-h-screen bg-[#020202] text-white font-sans selection:bg-pink-500 overflow-x-hidden relative">
+        <div ref={containerRef} className="min-h-screen bg-[#020202] text-white font-sans selection:bg-pink-500 overflow-x-hidden relative flex flex-col">
             
-            {/* GLOBAL BACKGROUND LAYER */}
+            {/* --- GLOBAL BACKGROUND --- */}
             <motion.div style={{ opacity }} className="fixed inset-0 z-0 pointer-events-none">
-                <img 
-                    src={concert.imageUrl || "https://images.unsplash.com/photo-1470229722913-7ea995968f55?q=80&w=2670&auto=format&fit=crop"} 
-                    alt="" 
-                    className="w-full h-full object-cover grayscale brightness-[0.25]" 
-                />
+                <img src={concert.imageUrl} alt="" className="w-full h-full object-cover grayscale brightness-[0.25]" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/80" />
             </motion.div>
 
-            {/* GIANT PARALLAX TEXT (Safe Check Added) */}
+            {/* --- PARALLAX TEXT --- */}
             <div className="fixed inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none select-none z-0 overflow-hidden">
                 <motion.h2 style={{ y: yText }} className="text-[35vw] font-black uppercase italic leading-none whitespace-nowrap">
                     {concert.artistName ? concert.artistName.split(' ')[0] : 'EVENT'}
                 </motion.h2>
             </div>
 
-            {/* OVERLAYS */}
+            {/* --- OVERLAYS --- */}
             <div className="fixed inset-0 pointer-events-none z-[1] opacity-[0.03] bg-noise mix-blend-overlay" />
-            <div className="fixed inset-0 pointer-events-none z-[1] opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
 
-            {/* HEADER */}
-            <header className="relative z-[50] p-8 flex items-center gap-6">
+            {/* --- HEADER --- */}
+            <header className="relative z-[50] pt-22 px-8 flex items-center gap-6 max-w-7xl mx-auto w-full">
                 <button onClick={() => navigate('/concerts')} className="p-3 bg-white/5 rounded-full hover:bg-white hover:text-black transition-all border border-white/10 backdrop-blur-md">
                     <ArrowLeft size={18} />
                 </button>
@@ -139,9 +123,30 @@ const ConcertBooking = () => {
                 </div>
             </header>
 
-            {/* MAIN CONTENT */}
-            <div className="relative z-10 max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-                <ArtistShowcase concert={concert} />
+            {/* --- MAIN SPLIT CONTENT --- */}
+            <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full p-6 md:p-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                
+                {/* 1. LEFT: ARTIST IMAGE */}
+                <div className="w-full h-[500px] lg:h-[700px] relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl group sticky top-8">
+                    <img 
+                        src={concert.imageUrl} 
+                        alt={concert.artistName} 
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
+                    
+                    <div className="absolute bottom-0 left-0 p-10">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mb-4">
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[10px] font-bold text-white uppercase tracking-widest">Confirmed Live</span>
+                        </div>
+                        <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-white mb-2 leading-[0.9]">
+                            {concert.artistName}
+                        </h2>
+                    </div>
+                </div>
+
+                {/* 2. RIGHT: BOOKING FORM (Contains Tiers) */}
                 <BookingForm
                     formData={formData}
                     setFormData={setFormData}
@@ -155,7 +160,6 @@ const ConcertBooking = () => {
             </div>
 
             <style>{`
-                .text-outline { -webkit-text-stroke: 1.5px white; }
                 .bg-noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
             `}</style>
         </div>
