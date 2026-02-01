@@ -75,7 +75,7 @@ export async function hydrateCache() {
         id: true,
         teamName: true,
         paymentStatus: true,
-        event: { select: { eventDate: true } }, // Include event date
+        event: { select: { eventDate: true ,name: true } }, // Include event date
         entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
         members: {
           select: {
@@ -117,6 +117,7 @@ export async function hydrateCache() {
           name: t.teamName,
           payment: t.paymentStatus,
           eventDate: t.event?.eventDate, // Store event date
+          eventName: t.event?.name,
           lastStatus: t.entryLogs[0]?.type || "EXIT",
           members: membersWithStatus // Store member list with status
         });
@@ -259,9 +260,9 @@ io.on("connection", (socket) => {
       ticketDate = new Date(ticket.concertDate).toDateString();
     }
 
-    // if (ticketDate && ticketDate !== today) {
-    //   return socket.emit("SCAN_ERROR", { error: "Ticket not valid for today" });
-    // }
+    if (ticketDate && ticketDate !== today) {
+      return socket.emit("SCAN_ERROR", { error: "Ticket not valid for today" });
+    }
 
     // --- 2. GATE-SPECIFIC LOGIC ---
     switch (scannerId) {
@@ -387,6 +388,8 @@ app.use(errorHandler);
 
 
 // 4. START SERVER
+
+export { io };
 
 
 hydrateCache().then(() => {
