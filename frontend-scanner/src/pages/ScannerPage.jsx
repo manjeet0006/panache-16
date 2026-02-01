@@ -60,10 +60,12 @@ const ScannerPage = ({ socket }) => {
     setTeamDetails(null);
     setIsProcessing(false);
     
-    // Resume scanning if instance exists
-    if (scannerRef.current && isScanningRef.current) {
-      try { scannerRef.current.resume(); } catch (e) { /* ignore */ }
-    }
+    // Resume scanning after a short delay to allow UI to update
+    setTimeout(() => {
+      if (scannerRef.current && isScanningRef.current) {
+        try { scannerRef.current.resume(); } catch (e) { console.error("Resume failed:", e); }
+      }
+    }, 100);
   }, []);
 
   const handleInitialize = useCallback((gateType) => {
@@ -120,19 +122,14 @@ const ScannerPage = ({ socket }) => {
 
     const handleScanSuccess = (data) => {
       setLastScan(data); playFeedback('success');
-      resetTimerRef.current = setTimeout(handleReset, SCAN_DELAY);
     };
     const handleScanError = (data) => {
       setLastScan({ error: data.error, isError: true }); playFeedback('error');
-      resetTimerRef.current = setTimeout(handleReset, ERROR_DELAY);
     };
     const handleTeamDetails = (data) => {
-      if (scannerId === 'CELEBRITY_GATE') {
-        setLastScan({ error: "Invalid at Celebrity Gate", isError: true }); playFeedback('error');
-        resetTimerRef.current = setTimeout(handleReset, SCAN_DELAY);
-      } else {
-        setTeamDetails(data); playFeedback('success'); setIsProcessing(false);
-      }
+      setTeamDetails(data);
+      playFeedback('success');
+      setIsProcessing(false);
     };
     const handleMemberLogSuccess = ({ action, memberName }) => { toast.success(`${action}: ${memberName}`); };
     const handleTeamMembersUpdated = ({ teamId, members }) => {
