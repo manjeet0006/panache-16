@@ -68,37 +68,37 @@ export async function hydrateCache() {
     console.log("🔥 Hydrating cache...");
     const start = Date.now();
 
-    // 1. Fetch Teams + Members
-    const teams = await prisma.team.findMany({
-      select: {
-        ticketCode: true,
-        id: true,
-        teamName: true,
-        paymentStatus: true,
-        event: { select: { eventDate: true ,name: true } }, // Include event date
-        entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
-        members: {
-          select: {
-            id: true, name: true,
-            entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
+    // 1. Fetch Teams and Concert Tickets in Parallel
+    const [teams, concertTickets] = await Promise.all([
+      prisma.team.findMany({
+        select: {
+          ticketCode: true,
+          id: true,
+          teamName: true,
+          paymentStatus: true,
+          event: { select: { eventDate: true ,name: true } }, // Include event date
+          entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
+          members: {
+            select: {
+              id: true, name: true,
+              entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
+            }
           }
         }
-      }
-    });
-
-    // 2. Fetch Concert Tickets
-    const concertTickets = await prisma.concertTicket.findMany({
-      select: {
-        arenaCode: true,
-        id: true,
-        guestName: true,
-        isEnterArena: true,
-        isEnterMainGate: true, // <--- Add this
-        tier: true,
-        concert: { select: { date: true } }, // Include concert date
-        entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
-      }
-    });
+      }),
+      prisma.concertTicket.findMany({
+        select: {
+          arenaCode: true,
+          id: true,
+          guestName: true,
+          isEnterArena: true,
+          isEnterMainGate: true, // <--- Add this
+          tier: true,
+          concert: { select: { date: true } }, // Include concert date
+          entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
+        }
+      })
+    ]);
 
     ticketCache.clear();
 

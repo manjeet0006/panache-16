@@ -17,6 +17,7 @@
     "seed": "node prisma/seed.js"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/client": "6.19.2",
     "@sendgrid/mail": "^8.1.6",

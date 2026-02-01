@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+// import { PrismaClient } from '@prisma/client';
+// const prisma = new PrismaClient();
 
 // async function main() {
 //   console.log("🧹 Wiping Database...");
@@ -342,48 +342,146 @@ const prisma = new PrismaClient();
 
 
 
+// async function main() {
+//   console.log('🌱 Starting LeaderBoard seed...');
+
+//   // 1. Clear existing data (Optional: Remove if you want to keep old data)
+//   await prisma.leaderBoard.deleteMany({});
+//   console.log('🧹 Cleared existing leaderboard entries.');
+
+//   // 2. Define 19 Departments with realistic dummy data
+//   const leaderBoardData = [
+//     { teamName: "Code Titans", score: "98.5", deptName: "Computer Science (CSE)" },
+//     { teamName: "Cyber Sentinels", score: "96.0", deptName: "Cyber Security" },
+//     { teamName: "AI Innovators", score: "95.5", deptName: "AI & Data Science" },
+//     { teamName: "Robo Corps", score: "94.0", deptName: "Robotics & Automation" },
+//     { teamName: "Electro Buzz", score: "92.5", deptName: "Electronics (ECE)" },
+//     { teamName: "Web Weavers", score: "91.0", deptName: "Information Technology (IT)" },
+//     { teamName: "Power Rangers", score: "89.5", deptName: "Electrical Engineering (EE)" },
+//     { teamName: "Gear Heads", score: "88.0", deptName: "Mechanical Engineering (ME)" },
+//     { teamName: "Structura", score: "87.5", deptName: "Civil Engineering (CE)" },
+//     { teamName: "Bio Hackers", score: "86.0", deptName: "Biotechnology" },
+//     { teamName: "Chem Catalysts", score: "85.5", deptName: "Chemical Engineering" },
+//     { teamName: "Aero Flyers", score: "84.0", deptName: "Aerospace Engineering" },
+//     { teamName: "Auto Motives", score: "83.5", deptName: "Automobile Engineering" },
+//     { teamName: "Mech Masters", score: "82.0", deptName: "Mechatronics" },
+//     { teamName: "Design Zen", score: "80.5", deptName: "Architecture" },
+//     { teamName: "Space Creators", score: "79.0", deptName: "Interior Design" },
+//     { teamName: "Vogue Squad", score: "78.5", deptName: "Fashion Design" },
+//     { teamName: "Biz Tycoons", score: "77.0", deptName: "Business Admin (BBA)" },
+//     { teamName: "CSI Investigators", score: "75.5", deptName: "Forensic Science" },
+//   ];
+
+//   // 3. Insert Data
+//   // We add 'collegeName: "VGU"' to all of them
+//   const dataWithCollege = leaderBoardData.map((entry) => ({
+//     ...entry,
+//     // collegeName: "VGU Campus",
+//   }));
+
+//   await prisma.leaderBoard.createMany({
+//     data: dataWithCollege,
+//   });
+
+//   console.log(`✅ Successfully seeded ${leaderBoardData.length} leaderboard entries!`);
+// }
+
+// main()
+//   .catch((e) => {
+//     console.error(e);
+//     process.exit(1);
+//   })
+//   .finally(async () => {
+//     await prisma.$disconnect();
+//   });
+
+
+import { PrismaClient, PaymentStatus, EventCategory } from '@prisma/client';
+import { faker } from '@faker-js/faker';
+
+const prisma = new PrismaClient();
+
 async function main() {
-  console.log('🌱 Starting LeaderBoard seed...');
+  console.log('🌱 Starting seed...');
 
-  // 1. Clear existing data (Optional: Remove if you want to keep old data)
-  await prisma.leaderBoard.deleteMany({});
-  console.log('🧹 Cleared existing leaderboard entries.');
+  // 1. Ensure we have a College (or create one)
+  let college = await prisma.college.findFirst();
+  if (!college) {
+    college = await prisma.college.create({
+      data: {
+        name: 'VGU Main Campus',
+        city: 'Jaipur',
+        isInternal: true,
+      },
+    });
+    console.log('🏫 Created Default College:', college.name);
+  }
 
-  // 2. Define 19 Departments with realistic dummy data
-  const leaderBoardData = [
-    { teamName: "Code Titans", score: "98.5", deptName: "Computer Science (CSE)" },
-    { teamName: "Cyber Sentinels", score: "96.0", deptName: "Cyber Security" },
-    { teamName: "AI Innovators", score: "95.5", deptName: "AI & Data Science" },
-    { teamName: "Robo Corps", score: "94.0", deptName: "Robotics & Automation" },
-    { teamName: "Electro Buzz", score: "92.5", deptName: "Electronics (ECE)" },
-    { teamName: "Web Weavers", score: "91.0", deptName: "Information Technology (IT)" },
-    { teamName: "Power Rangers", score: "89.5", deptName: "Electrical Engineering (EE)" },
-    { teamName: "Gear Heads", score: "88.0", deptName: "Mechanical Engineering (ME)" },
-    { teamName: "Structura", score: "87.5", deptName: "Civil Engineering (CE)" },
-    { teamName: "Bio Hackers", score: "86.0", deptName: "Biotechnology" },
-    { teamName: "Chem Catalysts", score: "85.5", deptName: "Chemical Engineering" },
-    { teamName: "Aero Flyers", score: "84.0", deptName: "Aerospace Engineering" },
-    { teamName: "Auto Motives", score: "83.5", deptName: "Automobile Engineering" },
-    { teamName: "Mech Masters", score: "82.0", deptName: "Mechatronics" },
-    { teamName: "Design Zen", score: "80.5", deptName: "Architecture" },
-    { teamName: "Space Creators", score: "79.0", deptName: "Interior Design" },
-    { teamName: "Vogue Squad", score: "78.5", deptName: "Fashion Design" },
-    { teamName: "Biz Tycoons", score: "77.0", deptName: "Business Admin (BBA)" },
-    { teamName: "CSI Investigators", score: "75.5", deptName: "Forensic Science" },
-  ];
+  // 2. Ensure we have an Event (or create one)
+  let event = await prisma.event.findFirst();
+  if (!event) {
+    event = await prisma.event.create({
+      data: {
+        name: 'Hackathon 2026',
+        description: 'The ultimate coding battle.',
+        category: EventCategory.PRAGATI,
+        minPlayers: 10,
+        maxPlayers: 15,
+        eventPrice: '500',
+        registrationOpen: true,
+      },
+    });
+    console.log('📅 Created Default Event:', event.name);
+  }
 
-  // 3. Insert Data
-  // We add 'collegeName: "VGU"' to all of them
-  const dataWithCollege = leaderBoardData.map((entry) => ({
-    ...entry,
-    // collegeName: "VGU Campus",
-  }));
+  // 3. Generate 500 Teams
+  console.log('🚀 Generating 500 Teams with Members... This might take a moment.');
 
-  await prisma.leaderBoard.createMany({
-    data: dataWithCollege,
-  });
+  const totalTeams = 500;
+  
+  // We use a transaction or just a loop. A loop is safer for large datasets to avoid timeout/memory issues.
+  for (let i = 0; i < totalTeams; i++) {
+    
+    // Randomize member count between 10 and 15
+    const memberCount = faker.number.int({ min: 10, max: 15 });
+    
+    // Generate Members Array
+    const membersData = [];
+    for (let m = 0; m < memberCount; m++) {
+      membersData.push({
+        name: faker.person.fullName(),
+        enrollment: faker.string.alphanumeric(10).toUpperCase(),
+        phone: faker.phone.number(), // Updated faker method
+        isLeader: m === 0, // First member is leader
+      });
+    }
 
-  console.log(`✅ Successfully seeded ${leaderBoardData.length} leaderboard entries!`);
+    // Create Team with nested members
+    await prisma.team.create({
+      data: {
+        teamName: `${faker.word.adjective()} ${faker.animal.type()} ${i + 1}`, // e.g. "Brave Lion 12"
+        teamEmail: faker.internet.email(),
+        paymentStatus: PaymentStatus.APPROVED, // Assuming paid for data vis
+        ticketCode: `TKT-${faker.string.alphanumeric(8).toUpperCase()}`, // Unique Ticket Code
+        
+        // Relations
+        eventId: event.id,
+        collegeId: college.id,
+        
+        // Create Members directly
+        members: {
+          create: membersData,
+        },
+      },
+    });
+
+    // Log progress every 50 teams
+    if ((i + 1) % 50 === 0) {
+      console.log(`✅ Generated ${i + 1} / ${totalTeams} teams`);
+    }
+  }
+
+  console.log('✨ Seeding completed successfully!');
 }
 
 main()
