@@ -36,6 +36,8 @@ const ScannerPage = ({ socket }) => {
   const resetTimerRef = useRef(null);
   const isScanningRef = useRef(false); // Track if camera is actively running
 
+  console.log(teamDetails);
+
   // ---------------------------------------------------------------------------
   // HELPER FUNCTIONS
   // ---------------------------------------------------------------------------
@@ -178,6 +180,7 @@ const ScannerPage = ({ socket }) => {
             formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
           },
           (decodedText) => {
+            console.log(decodedText , "ticket");
              // SUCCESS CALLBACK
              handleScan(decodedText);
           },
@@ -228,6 +231,7 @@ const ScannerPage = ({ socket }) => {
         try { scannerRef.current.pause(); } catch (e) {}
     }
 
+    console.log(decodedText);
     // 4. Emit
     if (socket) {
         socket.emit("VERIFY_SCAN", { ticketCode: decodedText, scannerId: scannerId });

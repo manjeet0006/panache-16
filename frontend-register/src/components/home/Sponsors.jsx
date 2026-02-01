@@ -43,11 +43,11 @@ const SponsorTicker = () => (
         {[...SPONSORS, ...SPONSORS, ...SPONSORS, ...SPONSORS].map((s, i) => (
           <div
             key={i}
-            className="flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity duration-300 cursor-pointer shrink-0"
+            className="flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer shrink-0"
           >
             <img 
-              src={s.logo} 
-              alt={s.name} 
+              src={s.logo}
+              alt={s.name}
               className="h-13 md:h-15 w-auto object-contain invert"
               // ADD THIS: It helps debug if the path is wrong
               onError={(e) => {
@@ -61,6 +61,7 @@ const SponsorTicker = () => (
     </div>
   </div>
 );
+
 
 const Sponsors = () => {
   return (

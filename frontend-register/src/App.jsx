@@ -75,6 +75,7 @@ function App() {
             <Route path='/score-board' element={<ScoreBoard/>}/>
 
 
+            {/* <Route path='' */}
 
             <Route
               path="/dashboard"
