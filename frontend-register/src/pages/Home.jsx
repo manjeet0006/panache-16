@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   motion,
@@ -23,17 +23,9 @@ import Developers from "@/components/home/Developers";
 const Home = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const scrollRef = useRef(null);
-  const [contentHeight, setContentHeight] = useState(0);
 
   // --- PHYSICS SCROLL ENGINE ---
-  const { scrollY, scrollYProgress } = useScroll();
-  const smoothY = useSpring(scrollY, {
-    damping: 20,
-    stiffness: 100,
-    mass: 0.5,
-  });
-  const y = useTransform(smoothY, (value) => -value);
+  const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
 
   // FAST BACKGROUND ANIMATION: Changed range to -100% for speed
@@ -41,18 +33,8 @@ const Home = () => {
   const subTextX = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const yParallax = useTransform(scrollYProgress, [0, 1], [0, -150]);
 
-  useLayoutEffect(() => {
-    const element = scrollRef.current;
-    if (!element) return;
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) setContentHeight(entry.contentRect.height);
-    });
-    resizeObserver.observe(element);
-    return () => resizeObserver.disconnect();
-  }, []);
-
   return (
-    <div className="relative bg-[#030303] text-white selection:bg-pink-500/30 font-sans min-h-screen overflow-hidden">
+    <div className="relative bg-[#030303] text-white selection:bg-pink-500/30 font-sans min-h-screen">
       <NoiseOverlay />
 
       <RegistrationModal
@@ -104,28 +86,15 @@ const Home = () => {
       </div>
 
       {/* --- SCROLLABLE CONTENT WRAPPER --- */}
-      <div style={{ height: contentHeight }} className="relative w-full">
-        <motion.div
-          ref={scrollRef}
-          style={{ y }}
-          className="fixed top-0 left-0 w-full z-10 overflow-hidden will-change-transform"
-        >
-          <Hero setShowModal={setShowModal}/>
-          {/* <Statistics />
-          <Performers/>
-          <Sponsors />
-          <About/>
-          <Faq />
-          <Footer setShowModal={setShowModal}/> */}
-          <Performers/>
-          <Sponsors />
-          <Developers/>
-          <About/>
-          <Faq />
-          <Statistics />
-
-          <Footer setShowModal={setShowModal}/>
-        </motion.div>
+      <div className="relative z-10">
+        <Hero setShowModal={setShowModal} />
+        <Performers />
+        <Sponsors />
+        <Developers />
+        <About />
+        <Faq />
+        <Statistics />
+        <Footer setShowModal={setShowModal} />
       </div>
     </div>
   );

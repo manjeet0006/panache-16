@@ -36,6 +36,7 @@ const TicketModal = ({ ticket, type, onClose }) => {
         black: '#000000',
         gray200: '#e5e7eb',
         gray400: '#9ca3af',
+        red400: '#B81C00',
         platinumText: '#cffafe',
     };
 
@@ -210,6 +211,8 @@ const TicketModal = ({ ticket, type, onClose }) => {
                                 {data.code}
                             </p>
                             <p className="text-[10px] font-bold uppercase tracking-widest mt-4" style={{ color: colors.gray400 }}>Non-Transferable</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: colors.red400 }}>One Time access Only</p>
+
 
                             {tier === 'PLATINUM' && (
                                 <div className="mt-6 w-full py-2 rounded-lg flex items-center justify-center gap-2" style={{ backgroundColor: '#ecfeff', border: `1px solid rgba(34, 211, 238, 0.3)` }}>
@@ -229,13 +232,13 @@ const TicketModal = ({ ticket, type, onClose }) => {
                     <button
                         onClick={handleDownload}
                         disabled={isDownloading}
-                        className="w-full mt-6 py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl flex items-center justify-center gap-3 transform active:scale-95 transition-all"
+                        className="w-full mt-6 py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[13px] shadow-2xl flex items-center justify-center gap-3 transform active:scale-95 transition-all"
                         style={{ background: theme.buttonBg, color: theme.buttonText, opacity: isDownloading ? 0.7 : 1 }}
                     >
                         {isDownloading ? (
-                            <><Loader2 size={16} className="animate-spin" /> Processing...</>
+                            <><Loader2 size={18} className="animate-spin" /> Processing...</>
                         ) : (
-                            <><Download size={16} /> Save High-Res Ticket</>
+                            <><Download size={18} /> Save Ticket</>
                         )}
                     </button>
                 </div>

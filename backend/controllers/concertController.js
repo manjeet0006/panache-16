@@ -198,11 +198,20 @@ export const verifyGuestPayment = async (req, res) => {
 
         // Send confirmation email
         if (email) {
+            const concert = await prisma.concert.findUnique({
+                where: { id: concertId },
+            });
+
             const subject = 'Your Panache Concert Ticket!';
             const templateData = {
                 name: name,
+                eventName: "Panache", // Static for now
+                artistName: concert?.artistName || "Featured Artist",
                 ticketCode: ticket.arenaCode,
-                quantity: 1 // Assuming 1 ticket per transaction for now
+                quantity: 1,
+                tier: tier,
+                date: concert?.dayLabel || "TBA",
+                venue: "VGU Campus, Jaipur" // Static for now
             };
             sendEmail(email, subject, 'concertTicket', templateData).catch(console.error);
         }

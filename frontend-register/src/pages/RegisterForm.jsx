@@ -20,9 +20,13 @@ const RegisterForm = () => {
 
     // Determine user type from URL (?isVgu=true)
     const isVgu = searchParams.get('isVgu') === 'true';
+    const urlSecretCode = searchParams.get('secretCode');
 
     // --- 1. STATE MANAGEMENT ---
-    const [step, setStep] = useState(isVgu ? 'FINAL' : 'CHECK');
+    const [step, setStep] = useState(
+        isVgu || !!urlSecretCode ? 'FINAL' : 'CHECK'
+    );
+
     const [loading, setLoading] = useState(false);
     const [event, setEvent] = useState(null);
     const [colleges, setColleges] = useState([]);
@@ -45,7 +49,17 @@ const RegisterForm = () => {
         emailId: ''
     });
 
-    console.log(formData, 'form');
+
+    useEffect(() => {
+        if (urlSecretCode) {
+            setFormData(prev => ({
+                ...prev,
+                secretCode: urlSecretCode.toUpperCase(),
+            }));
+        }
+    },);
+
+    // console.log(formData, 'form');
 
     // --- 2. DATA FETCHING ---
     useEffect(() => {
@@ -255,6 +269,19 @@ const RegisterForm = () => {
         <div className="min-h-screen bg-[#050505] pt-8 pb-20 px-4 text-white">
             <div className="max-w-2xl mx-auto">
 
+                {step === 'REQUEST_LOGGED' && (
+                    <div className="bg-white/5 mt-25 border border-white/10 rounded-[2.5rem] p-10 text-center backdrop-blur-xl animate-in fade-in duration-500">
+                        <ShieldCheck className="text-green-500 mx-auto mb-6" size={40} />
+                        <h2 className="text-3xl font-black uppercase italic mb-4">Inquiry Submitted</h2>
+                        <p className="text-gray-400 text-[15px] mb-10">
+                            Your form is submitted. Our team will contact you within 24 hours.
+                        </p>
+                        <button onClick={() => navigate('/')} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 hover:bg-pink-500 hover:text-white transition-all">
+                            Return to Home <ArrowRight size={18} />
+                        </button>
+                    </div>
+                )}
+
                 {/* GATEWAY: Code Verification for Outsiders */}
                 {!isVgu && step === 'CHECK' && (
                     <div className="bg-white/5 mt-25 border border-white/10 rounded-[2.5rem] p-10 text-center backdrop-blur-xl">
@@ -285,7 +312,7 @@ const RegisterForm = () => {
 
                 {/* FINAL REGISTRATION FORM */}
                 {step === 'FINAL' && (
-                    <form onSubmit={handleFinalSubmit} className="space-y-8 animate-in fade-in zoom-in duration-300">
+                    <form onSubmit={handleFinalSubmit} className="space-y-8 pt-15 animate-in fade-in zoom-in duration-300">
                         <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 space-y-8 backdrop-blur-md">
                             <header>
                                 <h2 className="text-4xl font-black italic uppercase tracking-tighter">Final <span className="text-pink-500">Registration</span></h2>
@@ -295,7 +322,7 @@ const RegisterForm = () => {
                             {/* Inputs */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input className="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Team Name" onChange={e => setFormData({ ...formData, teamName: e.target.value })} required />
-                                <input className="w-full bg-pink-500/5 border border-pink-500/20 p-4 rounded-xl outline-none text-pink-500 font-bold uppercase" placeholder="Secret Code" onChange={e => setFormData({ ...formData, secretCode: e.target.value })} required />
+                                <input className="w-full bg-pink-500/5 border border-pink-500/20 p-4 rounded-xl outline-none text-pink-500 font-bold uppercase" placeholder="Secret Code" value={formData.secretCode} onChange={e => setFormData({ ...formData, secretCode: e.target.value })} required />
                             </div>
                             <div className="grid grid-cols-1 gap-4">
                                 <input className="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Email Id" onChange={e => setFormData({ ...formData, emailId: e.target.value })} required />

@@ -224,8 +224,7 @@ const Contact = () => {
                         {/* Map */}
                         <div className="h-64 w-full rounded-[2rem] overflow-hidden border border-white/10 relative transition-all duration-500">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.8246830588647!2d75.89060697613628!3d26.78184566570535!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396dc91e898380fd%3A0xeee859ae1f1b64b0!2sVivekananda%20Global%20University!5e0!3m2!1sen!2sin!4v1709400000000!5m2!1sen!2sin"
-                                width="100%"
+                                src="https://maps.google.com/maps?q=Vivekananda+Global+University+Jaipur&t=n&z=16&ie=UTF8&iwloc=&output=embed"                                 width="100%"
                                 height="100%"
                                 style={{ border: 0 }}
                                 allowFullScreen=""

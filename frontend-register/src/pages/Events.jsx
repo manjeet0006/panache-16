@@ -17,7 +17,6 @@ const EventsExplorer = () => {
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Holds the ID of the currently expanded event. Only one event can be expanded at a time.
   const [expandedEvent, setExpandedEvent] = useState(null);
 
   // --- FILTER STATES ---
@@ -248,20 +247,16 @@ const EventsExplorer = () => {
                   <p className="text-gray-500 text-[13px] font-medium leading-relaxed mb-2 line-clamp-3">
                     {event.description}
                   </p>
-                  {/* --- RULEBOOK TOGGLE --- */}
+
                   <div className="mb-4">
                     <button
-                      // This onClick handler toggles the visibility of the rulebook.
-                      // It sets the expandedEvent state to the current event's id,
-                      // or null if it's already the expanded event.
                       onClick={() => setExpandedEvent(expandedEvent === event.id ? null : event.id)}
                       className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-pink-500/80 hover:text-pink-500 transition-all"
                     >
                       {expandedEvent === event.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       {expandedEvent === event.id ? "Close Rules" : "Read Rulebook"}
                     </button>
-                    {/* --- EXPANDED CONTENT: RULEBOOK --- */}
-                    {/* This section is only rendered if the current event's id matches the expandedEvent state */}
+
                     {expandedEvent === event.id && (
                       <div className="mt-4 p-5 bg-black/40 rounded-2xl border border-white/5 animate-in slide-in-from-top duration-300">
                         <div className="space-y-3">

@@ -16,7 +16,7 @@ const TIER_METADATA = {
     },
     'PLATINUM': {
         icon: Star,
-        color: "text-pink-500",
+        color: "text-[#C69F62]",
         perks: ["VIP Front Row", "Meet & Greet", "VIP Lounge", "Signed Merch"]
     }
 };
@@ -34,8 +34,8 @@ const BookingForm = ({ formData, setFormData, tiers, selectedTier, setSelectedTi
             
             {/* Header */}
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                <h3 className="text-xs font-black uppercase italic tracking-widest text-white">Guest Terminal</h3>
-                <span className="text-[9px] font-black uppercase tracking-widest text-pink-500 italic">Phase 01</span>
+                <h3 className="text-sm font-black uppercase italic tracking-widest text-white">Guest Terminal</h3>
+                <span className="text-[12px] font-black uppercase tracking-widest text-pink-500 italic">Phase 01</span>
             </div>
             
             {/* Inputs */}
@@ -47,9 +47,12 @@ const BookingForm = ({ formData, setFormData, tiers, selectedTier, setSelectedTi
 
             {/* --- ACCORDION TIER SELECTION --- */}
             <div className="mb-8 flex-1">
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-4 pl-1">Select Access Level</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-4 pl-1">Select Access Level</p>
                 <div className="flex flex-col gap-3">
-                    {tiers?.map((tier) => {
+                    {tiers?.slice().sort((a, b) => {
+                        const order = { 'PLATINUM': 1, 'GOLD': 2, 'SILVER': 3 };
+                        return order[a.tier] - order[b.tier];
+                    }).map((tier) => {
                         const isSoldOut = concertSoldOut || tier.soldOut;
                         const isSelected = selectedTier?.id === tier.id;
                         const meta = TIER_METADATA[tier.tier] || TIER_METADATA['SILVER'];
@@ -72,12 +75,12 @@ const BookingForm = ({ formData, setFormData, tiers, selectedTier, setSelectedTi
                                 <div className="p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Icon size={18} className={isSelected ? 'text-black' : meta.color} />
-                                        <span className={`text-xs font-black uppercase tracking-wider ${isSelected ? 'text-black' : 'text-white'}`}>
+                                        <span className={`text-sm font-black uppercase tracking-wider ${isSelected ? 'text-black' : 'text-white'}`}>
                                             {tier.tier}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className={`text-sm font-black italic ${isSelected ? 'text-black' : 'text-white'}`}>
+                                        <span className={`text-xl font-black italic ${isSelected ? 'text-black' : 'text-white'}`}>
                                             {isSoldOut ? "SOLD OUT" : `₹${tier.price}`}
                                         </span>
                                         {!isSoldOut && (
@@ -105,7 +108,7 @@ const BookingForm = ({ formData, setFormData, tiers, selectedTier, setSelectedTi
                                                             initial={{ x: -10, opacity: 0 }}
                                                             animate={{ x: 0, opacity: 1 }}
                                                             transition={{ delay: i * 0.05 }}
-                                                            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-black/70"
+                                                            className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-black/70"
                                                         >
                                                             <Check size={10} className="text-pink-600" />
                                                             {perk}
@@ -127,13 +130,13 @@ const BookingForm = ({ formData, setFormData, tiers, selectedTier, setSelectedTi
                 <button 
                     onClick={onBuy}
                     disabled={isProcessing || concertSoldOut || !selectedTier || selectedTier.soldOut}
-                    className={`w-full py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-xl transition-all flex items-center justify-center gap-3
+                    className={`w-full py-4 rounded-xl font-extrabold uppercase tracking-[0.2em] text-[15px] shadow-xl transition-all flex items-center justify-center gap-3
                     ${(!selectedTier || concertSoldOut || (selectedTier && selectedTier.soldOut)) ? 'bg-white/10 text-gray-500 cursor-not-allowed' : 'bg-pink-600 hover:bg-pink-500 text-white shadow-pink-600/30'}`}
                 >
                     {isProcessing ? <Loader2 className="animate-spin" /> : (concertSoldOut) ? 'SOLD OUT' : <>Initialize Access <ArrowRight size={16}/></>}
                 </button>
                 
-                <p className="mt-4 text-[8px] text-center font-bold uppercase tracking-widest text-gray-600 flex items-center justify-center gap-2">
+                <p className="mt-4 text-[10px] text-center font-bold uppercase tracking-widest text-gray-600 flex items-center justify-center gap-2">
                     <ShieldCheck size={10} className="text-green-500"/> Secured via Razorpay
                 </p>
             </div>
@@ -145,8 +148,8 @@ const BookingForm = ({ formData, setFormData, tiers, selectedTier, setSelectedTi
 // Helper Input
 const InputField = ({ icon: Icon, ...props }) => (
     <div className="group bg-black/30 rounded-xl px-4 py-3.5 flex items-center gap-3 border border-white/10 focus-within:border-pink-500/50 transition-all">
-        <Icon size={14} className="text-gray-500 group-focus-within:text-pink-500 transition-colors" />
-        <input {...props} className="bg-transparent w-full outline-none text-[10px] font-black placeholder:text-gray-700 text-white uppercase tracking-widest" />
+        <Icon size={16} className="text-gray-500 group-focus-within:text-pink-500 transition-colors" />
+        <input {...props} className="bg-transparent w-full outline-none text-[12px] font-black placeholder:text-gray-700 text-white uppercase tracking-widest" />
     </div>
 );
 
