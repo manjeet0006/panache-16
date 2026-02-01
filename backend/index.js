@@ -62,79 +62,31 @@ export const ticketCache = new Map();
 // Readiness flag
 let cacheReady = false;
 
-// --- UPDATED HYDRATION LOGIC (BATCHED) ---
+// Hydrate cache on server start
 export async function hydrateCache() {
   try {
-    console.log("🔥 Hydrating cache in batches...");
+    console.log("🔥 Hydrating cache...");
     const start = Date.now();
-    
-    // Clear existing cache before reloading
-    ticketCache.clear();
 
-    // ---------------------------------------------
-    // 1. Fetch Teams in Batches (Prevents Timeouts)
-    // ---------------------------------------------
-    const BATCH_SIZE = 200; // Process 200 teams at a time
-    let hasMore = true;
-    let skip = 0;
-
-    while (hasMore) {
-      // Fetch a small chunk of teams
-      const teams = await prisma.team.findMany({
-        skip: skip,
-        take: BATCH_SIZE,
-        select: {
-          ticketCode: true,
-          id: true,
-          teamName: true,
-          paymentStatus: true,
-          event: { select: { eventDate: true ,name: true } }, // Include event date
-          entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
-          members: {
-            select: {
-              id: true, name: true,
-              entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
-            }
+    // 1. Fetch Teams + Members
+    const teams = await prisma.team.findMany({
+      select: {
+        ticketCode: true,
+        id: true,
+        teamName: true,
+        paymentStatus: true,
+        event: { select: { eventDate: true ,name: true } }, // Include event date
+        entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
+        members: {
+          select: {
+            id: true, name: true,
+            entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
           }
         }
-      });
-
-      // Process this batch into the Cache map
-      teams.forEach(t => {
-        if (t.ticketCode) {
-          const membersWithStatus = t.members.map(m => ({
-            id: m.id,
-            name: m.name,
-            status: m.entryLogs[0]?.type || 'EXIT'
-          }));
-
-          ticketCache.set(t.ticketCode, {
-            type: 'TEAM',
-            id: t.id,
-            name: t.teamName,
-            payment: t.paymentStatus,
-            eventDate: t.event?.eventDate, // Store event date
-            eventName: t.event?.name,
-            lastStatus: t.entryLogs[0]?.type || "EXIT",
-            members: membersWithStatus // Store member list with status
-          });
-        }
-      });
-
-      // Prepare for next batch
-      console.log(`   Processed teams ${skip} to ${skip + teams.length}`);
-      skip += BATCH_SIZE;
-      
-      // Stop if we fetched fewer than batch size (end of data)
-      if (teams.length < BATCH_SIZE) {
-        hasMore = false; 
       }
-    }
+    });
 
-    // ---------------------------------------------
-    // 2. Fetch Concert Tickets 
-    // ---------------------------------------------
-    // (Usually fewer, but safer to stick to standard fetch unless >5000)
+    // 2. Fetch Concert Tickets
     const concertTickets = await prisma.concertTicket.findMany({
       select: {
         arenaCode: true,
@@ -148,7 +100,31 @@ export async function hydrateCache() {
       }
     });
 
-    // Load Concert Tickets into Cache
+    ticketCache.clear();
+
+    // 3. Load Teams into Cache
+    teams.forEach(t => {
+      if (t.ticketCode) {
+        const membersWithStatus = t.members.map(m => ({
+          id: m.id,
+          name: m.name,
+          status: m.entryLogs[0]?.type || 'EXIT'
+        }));
+
+        ticketCache.set(t.ticketCode, {
+          type: 'TEAM',
+          id: t.id,
+          name: t.teamName,
+          payment: t.paymentStatus,
+          eventDate: t.event?.eventDate, // Store event date
+          eventName: t.event?.name,
+          lastStatus: t.entryLogs[0]?.type || "EXIT",
+          members: membersWithStatus // Store member list with status
+        });
+      }
+    });
+
+    // 4. Load Concert Tickets into Cache
     concertTickets.forEach(t => {
       if (t.arenaCode) {
         ticketCache.set(t.arenaCode, {
