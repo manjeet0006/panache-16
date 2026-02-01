@@ -65,7 +65,7 @@ const ScannerPage = ({ socket }) => {
       if (scannerRef.current && isScanningRef.current) {
         try { scannerRef.current.resume(); } catch (e) { console.error("Resume failed:", e); }
       }
-    }, 100);
+    }, 300);
   }, []);
 
   const handleInitialize = useCallback((gateType) => {
@@ -129,7 +129,6 @@ const ScannerPage = ({ socket }) => {
     const handleTeamDetails = (data) => {
       setTeamDetails(data);
       playFeedback('success');
-      setIsProcessing(false);
     };
     const handleMemberLogSuccess = ({ action, memberName }) => { toast.success(`${action}: ${memberName}`); };
     const handleTeamMembersUpdated = ({ teamId, members }) => {
