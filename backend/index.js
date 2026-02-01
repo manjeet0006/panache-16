@@ -232,6 +232,11 @@ io.on("connection", (socket) => {
   socket.emit("SYSTEM_STATUS", { 
     isReady: cacheReady 
   });
+
+  socket.on('disconnect', () => {
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
+
   socket.on("VERIFY_SCAN", async (data) => {
     if (!cacheReady) {
       return socket.emit("SCAN_ERROR", { error: "System warming up, try again" });

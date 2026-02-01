@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import {
   Users, ShieldCheck, ScanLine, ChevronLeft, 
@@ -36,7 +36,6 @@ const ScannerPage = ({ socket }) => {
   const resetTimerRef = useRef(null);
   const isScanningRef = useRef(false); // Track if camera is actively running
 
-  console.log(teamDetails);
 
   // ---------------------------------------------------------------------------
   // HELPER FUNCTIONS
@@ -52,7 +51,7 @@ const ScannerPage = ({ socket }) => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (resetTimerRef.current) {
       clearTimeout(resetTimerRef.current);
       resetTimerRef.current = null;
@@ -65,9 +64,9 @@ const ScannerPage = ({ socket }) => {
     if (scannerRef.current && isScanningRef.current) {
       try { scannerRef.current.resume(); } catch (e) { /* ignore */ }
     }
-  };
+  }, []);
 
-  const handleInitialize = (gateType) => {
+  const handleInitialize = useCallback((gateType) => {
     // Prime audio on user interaction to bypass browser autoplay policy
     successAudio.play().then(() => { 
         successAudio.pause(); 
@@ -77,7 +76,7 @@ const ScannerPage = ({ socket }) => {
     setScannerId(gateType);
     setIsUnlocked(true);
     setCameraError(null);
-  };
+  }, []);
 
   // ---------------------------------------------------------------------------
   // SOCKET & EVENTS
@@ -156,6 +155,47 @@ const ScannerPage = ({ socket }) => {
   }, [socket, handleReset, scannerId]);
 
   // ---------------------------------------------------------------------------
+  // ACTIONS
+  // ---------------------------------------------------------------------------
+  const handleScan = useCallback((decodedText) => {
+    // 1. Validation
+    if (!isConnected || !isSystemReady) { 
+        toast.warning("System Offline/Loading"); 
+        return; 
+    }
+    if (isProcessing) return;
+    
+    // 2. Lock State
+    setIsProcessing(true); 
+    setLastScan(null); 
+    setTeamDetails(null);
+    
+    // 3. Pause Scanner (Visual Feedback)
+    if (scannerRef.current && isScanningRef.current) {
+        try { scannerRef.current.pause(); } catch (e) {}
+    }
+
+    // 4. Emit
+    if (socket) {
+        socket.emit("VERIFY_SCAN", { ticketCode: decodedText, scannerId: scannerId });
+    } else { 
+        setIsProcessing(false); 
+        handleReset(); 
+    }
+  }, [isConnected, isSystemReady, isProcessing, socket, scannerId, handleReset]);
+
+  const handleLogMember = useCallback((member) => {
+    if (!socket) return;
+    socket.emit("TOGGLE_MEMBER_STATUS", { 
+        teamId: teamDetails.teamId, 
+        memberId: member.id, 
+        memberName: member.name, 
+        scannerId: scannerId 
+    });
+  }, [socket, teamDetails, scannerId]);
+
+
+  // ---------------------------------------------------------------------------
   // SCANNER LIFECYCLE (THE CRITICAL FIX)
   // ---------------------------------------------------------------------------
   useEffect(() => {
@@ -180,7 +220,6 @@ const ScannerPage = ({ socket }) => {
             formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
           },
           (decodedText) => {
-            console.log(decodedText , "ticket");
              // SUCCESS CALLBACK
              handleScan(decodedText);
           },
@@ -208,48 +247,7 @@ const ScannerPage = ({ socket }) => {
             }).catch(err => console.error("Stop failed", err));
         }
     };
-  }, [isUnlocked]);
-
-  // ---------------------------------------------------------------------------
-  // ACTIONS
-  // ---------------------------------------------------------------------------
-  const handleScan = (decodedText) => {
-    // 1. Validation
-    if (!isConnected || !isSystemReady) { 
-        toast.warning("System Offline/Loading"); 
-        return; 
-    }
-    if (isProcessing) return;
-    
-    // 2. Lock State
-    setIsProcessing(true); 
-    setLastScan(null); 
-    setTeamDetails(null);
-    
-    // 3. Pause Scanner (Visual Feedback)
-    if (scannerRef.current && isScanningRef.current) {
-        try { scannerRef.current.pause(); } catch (e) {}
-    }
-
-    console.log(decodedText);
-    // 4. Emit
-    if (socket) {
-        socket.emit("VERIFY_SCAN", { ticketCode: decodedText, scannerId: scannerId });
-    } else { 
-        setIsProcessing(false); 
-        handleReset(); 
-    }
-  };
-
-  const handleLogMember = (member) => {
-    if (!socket) return;
-    socket.emit("TOGGLE_MEMBER_STATUS", { 
-        teamId: teamDetails.teamId, 
-        memberId: member.id, 
-        memberName: member.name, 
-        scannerId: scannerId 
-    });
-  };
+  }, [isUnlocked, handleScan]);
 
   // ---------------------------------------------------------------------------
   // VIEW: LOCKED STATE

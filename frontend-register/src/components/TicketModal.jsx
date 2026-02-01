@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { X, Download, MapPin, Calendar, Zap, ShieldCheck, Music, Crown, Star, User, Loader2 } from 'lucide-react';
 
@@ -196,7 +196,7 @@ const TicketModal = ({ ticket, type, onClose }) => {
                         {/* BODY */}
                         <div className="px-6 pb-8 pt-2 flex flex-col items-center" style={{ backgroundColor: colors.white }}>
                             <div className="p-3 rounded-2xl mb-5 relative" style={{ backgroundColor: colors.white, border: `2px dashed ${colors.gray200}` }}>
-                                <QRCode value={data.code || "NO_CODE"} size={160} fgColor={colors.black} bgColor={colors.white} level="H" />
+                                <QRCodeSVG value={data.code || "NO_CODE"} size={160} fgColor={colors.black} bgColor={colors.white} level="H" />
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                     <div className="w-10 h-10 rounded-md flex items-center justify-center shadow-sm" style={{ backgroundColor: colors.white, border: `2px solid ${colors.white}` }}>
                                         <div className="w-full h-full rounded-sm flex items-center justify-center" style={{ backgroundColor: colors.black }}>
