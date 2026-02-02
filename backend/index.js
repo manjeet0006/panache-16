@@ -30,6 +30,7 @@ const allowedOrigins = [
   "http://localhost:5175",
   "https://panache.vercel.app",
   "https://panache-16.vercel.app",
+  "https://panache-16-gghv.vercel.app",
   "*"
 ];
 
