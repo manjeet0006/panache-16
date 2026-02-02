@@ -376,6 +376,13 @@ io.on("connection", (socket) => {
   });
 });
 
+
+
+// Lightweight Keep-Alive Route
+app.get('/ping', (req, res) => {
+  res.status(200).send('Pong');
+});
+
 // 3. REST ROUTES
 
 app.use('/api/register', registrationRoutes);
