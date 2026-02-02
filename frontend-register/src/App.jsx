@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import { io } from 'socket.io-client';
 import { Toaster, toast } from 'sonner';
 import { useAuth } from './context/AuthContext';
+import { Analytics } from '@vercel/analytics/react';
+
 
 // Pages
 import Home from './pages/Home';
@@ -87,10 +89,11 @@ function App() {
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+
         </main>
 
         <Footer />
-
+              <Analytics/>
         <Toaster theme="dark" richColors position="top-right" closeButton />
       </div>
     </Router>

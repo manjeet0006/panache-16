@@ -6,6 +6,8 @@ import { io } from 'socket.io-client';
 import { AnimatePresence, motion } from 'framer-motion';
 import { QrCode, Search } from 'lucide-react';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
+
 
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
@@ -95,6 +97,7 @@ function App() {
               <Route path="/search" element={<TicketSearch socket={socket} />} />
             </Routes>
           </PageWrapper>
+          <Analytics/>
         {/* </main> */}
       {/* </div> */}
     </BrowserRouter>

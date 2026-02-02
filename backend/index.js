@@ -392,7 +392,6 @@ app.use('/api/user', userRoutes);
 app.use(errorHandler);
 
 
-// 4. START SERVER
 
 export { io };
 
