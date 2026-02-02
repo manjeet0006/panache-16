@@ -1,4 +1,5 @@
 import express from 'express';
+import { formatInTimeZone } from 'date-fns-tz';
 import { createServer } from 'http'; // Required for WebSockets
 import { Server } from 'socket.io';   // Required for WebSockets
 import cors from 'cors';
@@ -250,17 +251,20 @@ io.on("connection", (socket) => {
       return socket.emit("SCAN_ERROR", { error: "Ticket Not Found" });
     }
 
-    // --- 1. DATE VALIDATION ---
-    const today = new Date().toDateString();
-    let ticketDate = null;
+    // --- 1. DATE VALIDATION (TIMEZONE-AWARE) ---
+    // All dates are compared in the event's local timezone to avoid server timezone issues.
+    // TODO: Consider moving 'Asia/Kolkata' to an environment variable.
+    const timeZone = 'Asia/Kolkata';
+    const today = formatInTimeZone(new Date(), timeZone, 'yyyy-MM-dd');
 
-    if (ticket.type === 'TEAM' && ticket.eventDate) {
-      ticketDate = new Date(ticket.eventDate).toDateString();
-    } else if (ticket.type === 'CONCERT' && ticket.concertDate) {
-      ticketDate = new Date(ticket.concertDate).toDateString();
+    let ticketDateStr = null;
+    const ticketEventDate = ticket.type === 'TEAM' ? ticket.eventDate : ticket.concertDate;
+
+    if (ticketEventDate) {
+      ticketDateStr = formatInTimeZone(new Date(ticketEventDate), timeZone, 'yyyy-MM-dd');
     }
 
-    if (ticketDate && ticketDate !== today) {
+    if (ticketDateStr && ticketDateStr !== today) {
       return socket.emit("SCAN_ERROR", { error: "Ticket not valid for today" });
     }
 

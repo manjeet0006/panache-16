@@ -1,11 +1,23 @@
+import { formatInTimeZone } from 'date-fns-tz';
 import { prisma } from '../db.js';
 import { io, ticketCache } from '../index.js'; 
 
 const getDayNumber = () => {
-  const now = new Date();
-  const eventStartDate = new Date('2026-02-01T00:00:00.000Z');
-  const diff = now.getTime() - eventStartDate.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+    const timeZone = 'Asia/Kolkata';
+    const eventStartDate = new Date('2026-02-01T00:00:00Z'); // Use a fixed UTC start point
+
+    // Get the calendar date for "now" and for the "start" in the event's timezone
+    const todayStr = formatInTimeZone(new Date(), timeZone, 'yyyy-MM-dd');
+    const startStr = formatInTimeZone(eventStartDate, timeZone, 'yyyy-MM-dd');
+
+    // Create date objects from these strings. They will be in UTC but represent the correct calendar day.
+    const todayDate = new Date(todayStr);
+    const startDate = new Date(startStr);
+    
+    const diffTime = todayDate.getTime() - startDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays + 1;
 };
 
 // --- SEARCH TICKET ---
@@ -75,10 +87,11 @@ export const markEventEntry = async (req, res) => {
 
     if (!team) return res.status(404).json({ error: 'Team not found' });
 
-    // Date Check
-    const eventDate = new Date(team.event.eventDate);
-    const today = new Date();
-    if (eventDate.toDateString() !== today.toDateString()) {
+    const timeZone = 'Asia/Kolkata';
+    const todayStr = formatInTimeZone(new Date(), timeZone, 'yyyy-MM-dd');
+    const eventDateStr = formatInTimeZone(new Date(team.event.eventDate), timeZone, 'yyyy-MM-dd');
+
+    if (eventDateStr !== todayStr) {
         return res.status(403).json({ error: 'Entry only allowed on event day' });
     }
 
@@ -141,9 +154,11 @@ export const markEventExit = async (req, res) => {
 
         if (!team) return res.status(404).json({ error: 'Team not found' });
 
-        const eventDate = new Date(team.event.eventDate);
-        const today = new Date();
-        if (eventDate.toDateString() !== today.toDateString()) {
+        const timeZone = 'Asia/Kolkata';
+        const todayStr = formatInTimeZone(new Date(), timeZone, 'yyyy-MM-dd');
+        const eventDateStr = formatInTimeZone(new Date(team.event.eventDate), timeZone, 'yyyy-MM-dd');
+        
+        if (eventDateStr !== todayStr) {
             return res.status(403).json({ error: 'Exit only allowed on event day' });
         }
 
@@ -202,12 +217,11 @@ export const markConcertEntry = async (req, res) => {
 
         if (!concertTicket) return res.status(404).json({ error: 'Concert ticket not found' });
         
-        const concertDate = new Date(concertTicket.concert.date);
-        const today = new Date();
-        concertDate.setHours(0,0,0,0);
-        today.setHours(0,0,0,0);
+        const timeZone = 'Asia/Kolkata';
+        const todayStr = formatInTimeZone(new Date(), timeZone, 'yyyy-MM-dd');
+        const concertDateStr = formatInTimeZone(new Date(concertTicket.concert.date), timeZone, 'yyyy-MM-dd');
 
-        if (concertDate.getTime() !== today.getTime()) {
+        if (concertDateStr !== todayStr) {
              return res.status(403).json({ error: 'Entry only allowed on event day' });
         }
 
