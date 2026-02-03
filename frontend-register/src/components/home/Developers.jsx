@@ -17,7 +17,6 @@ const TEAM = [
       linkedin: "https://www.linkedin.com/in/manjeet-kumar-50a463301/",
       instagram: "https://www.instagram.com/manjeet_rajput_0006",
     },
-    tech: ["React", "Next.js", "Node" , "Fullstack" , "UI/UX"],
     accent: "group-hover:text-purple-400",
     border: "group-hover:border-purple-500/50"
   },
@@ -32,7 +31,6 @@ const TEAM = [
       linkedin: "https://www.linkedin.com/in/harshitchoudhayin?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
       instagram: "https://www.instagram.com/harshitchoudhary.in?igsh=aGcxZ253dGE5aGJ2",
     },
-    tech: ["Fullstack","React", "Next.js", "Node" , "UI/UX"],
     accent: "group-hover:text-cyan-400",
     border: "group-hover:border-cyan-500/50"
   },
@@ -53,7 +51,7 @@ const SpotlightCard = ({ member }) => {
     <motion.div
       ref={divRef}
       onMouseMove={handleMouseMove}
-      className={`group relative h-[450px] md:h-[500px] w-full rounded-2xl border border-white/10 bg-[#0a0a0a] overflow-hidden transition-colors duration-500 ${member.border}`}
+      className={`group relative h-[350px] md:h-[460px] w-full rounded-2xl border border-white/10 bg-[#0a0a0a] overflow-hidden transition-colors duration-500 ${member.border}`}
     >
       {/* 1. BACKGROUND TEXTURE */}
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
@@ -70,7 +68,7 @@ const SpotlightCard = ({ member }) => {
       />
 
       {/* 3. IMAGE SECTION (Top Half) */}
-      <div className="relative h-[55%] md:h-[60%] w-full overflow-hidden border-b border-white/10 z-20">
+      <div className="relative h-[60%] md:h-[70%] w-full overflow-hidden border-b border-white/10 z-20">
          <img 
             src={member.image} 
             alt={member.name}
@@ -106,7 +104,7 @@ const SpotlightCard = ({ member }) => {
       </div>
 
       {/* 4. INFO SECTION (Bottom Half) */}
-      <div className="relative h-[45%] md:h-[40%] p-6 md:p-8 flex flex-col justify-between z-20">
+      <div className="relative mb-4 h-[35%] md:h-[30%] p-5 md:p-8 flex flex-col justify-between z-20">
          
          <div>
              <div className="flex items-center justify-between mb-2">
@@ -123,17 +121,6 @@ const SpotlightCard = ({ member }) => {
              <p className="text-gray-400 text-xs md:text-sm font-medium">{member.role}</p>
          </div>
 
-         {/* Tech Stack Pills */}
-         <div className="flex flex-wrap gap-2 mt-4 md:mt-6">
-            {member.tech.map((tech, i) => (
-                <span 
-                    key={i} 
-                    className="px-2 py-1 md:px-3 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-white/60 border border-white/10 rounded-full group-hover:border-white/30 group-hover:text-white transition-colors bg-black/50"
-                >
-                    {tech}
-                </span>
-            ))}
-         </div>
 
       </div>
     </motion.div>
@@ -177,7 +164,7 @@ const Developers = () => {
       </ActiveScrollReveal>
 
       {/* DEVELOPER GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1  md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
          {TEAM.map((member, idx) => (
              <ActiveScrollReveal key={member.id} delay={idx * 0.1} direction="up">
                  <SpotlightCard member={member} />

@@ -37,7 +37,7 @@ const MemberCard = ({ index, member, isVgu, onUpdate, onRemove, showRemove }) =>
           
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[7px] font-black uppercase tracking-[0.4em] text-gray-600">Personnel Registry</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-600">Personnel Registry</span>
                 {isLeader && <ShieldCheck size={10} className="text-pink-500/50" />}
             </div>
             <h4 className={`text-sm font-black uppercase italic tracking-widest leading-none ${isLeader ? 'text-pink-500' : 'text-white'}`}>
@@ -59,24 +59,26 @@ const MemberCard = ({ index, member, isVgu, onUpdate, onRemove, showRemove }) =>
 
       {/* 4. INPUT GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative">
-        <InputField 
-            icon={<User size={14} />} 
-            placeholder="FULL NAME" 
-            value={member.name} 
-            onChange={(val) => onUpdate(index, 'name', val)} 
+        <InputField
+            icon={<User size={14} />}
+            placeholder="FULL NAME"
+            value={member.name}
+            onChange={(val) => onUpdate(index, 'name', val.replace(/[^a-zA-Z\s]/g, ''))}
         />
-        <InputField 
-            icon={<Phone size={14} />} 
-            placeholder="WHATSAPP NO" 
-            value={member.phone} 
-            onChange={(val) => onUpdate(index, 'phone', val)} 
+        <InputField
+            icon={<Phone size={14} />}
+            placeholder="WHATSAPP NO"
+            value={member.phone}
+            onChange={(val) => onUpdate(index, 'phone', val.replace(/[^0-9]/g, ''))}
+            maxLength={10}
         />
         {isVgu && (
-          <InputField 
-            icon={<Hash size={14} />} 
-            placeholder="ENROLLMENT ID" 
-            value={member.enrollment} 
-            onChange={(val) => onUpdate(index, 'enrollment', val)} 
+          <InputField
+            icon={<Hash size={14} />}
+            placeholder="ERP NO"
+            value={member.enrollment}
+            onChange={(val) => onUpdate(index, 'enrollment', val.replace(/[^0-9]/g, ''))}
+            maxLength={6}
           />
         )}
       </div>
@@ -85,17 +87,18 @@ const MemberCard = ({ index, member, isVgu, onUpdate, onRemove, showRemove }) =>
 };
 
 // --- REFINED INPUT SUB-COMPONENT ---
-const InputField = ({ icon, placeholder, value, onChange }) => (
+const InputField = ({ icon, placeholder, value, onChange, maxLength }) => (
     <div className="relative group/input">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within/input:text-pink-500 transition-colors duration-200">
             {icon}
         </div>
-        <input 
+        <input
             type="text"
-            className="w-full bg-black/20 border border-white/5 pl-11 pr-4 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-[0.1em] outline-none focus:border-pink-500/40 transition-all duration-200 placeholder:text-gray-800 text-white" 
+            className="w-full bg-black/20 border border-white/5 pl-11 pr-4 py-4 rounded-2xl text-[12px] font-bold uppercase tracking-[0.1em] outline-none focus:border-pink-500/40 transition-all duration-200 placeholder:text-gray-800 text-white"
             placeholder={placeholder}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            maxLength={maxLength}
             required
         />
     </div>
