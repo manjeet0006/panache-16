@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from "uuid";
 import { 
   Building2, 
@@ -34,7 +35,7 @@ export default function CreateDepartment() {
 
   // --- LOGIC ---
 
- const generateSecretCode = () => `VGU-${customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8)()}`;
+  const generateSecretCode = () => `VGU-${customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8)()}`;
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });

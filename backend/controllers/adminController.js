@@ -5,6 +5,7 @@ import { ticketCache } from '../index.js';
 import { v4 as uuidv4 } from "uuid";
 import { google } from "googleapis";
 import path from "path";
+import { customAlphabet } from 'nanoid';
 
 
 
@@ -489,7 +490,7 @@ export const generateInviteCodes = async (req, res) => {
     const invites = [];
 
   for (let i = 0; i < count; i++) {
-  const code = `EXT-${uuidv4().slice(0, 6).toUpperCase()}`;
+  const code = `EXT-${customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8)()}`;
 
   invites.push({
     code,
