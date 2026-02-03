@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import { Toaster, toast } from 'sonner';
 import { useAuth } from './context/AuthContext';
+import { Analytics } from '@vercel/analytics/react';
+
 
 // Pages
 import Home from './pages/Home';
 import EventsExplorer from './pages/Events';
 import RegisterForm from './pages/RegisterForm';
-import ScannerPage from './pages/ScannerPage';
+// import ScannerPage from './pages/ScannerPage';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
@@ -18,6 +21,8 @@ import ConcertShowcase from './pages/ConcertShowcase';
 import ConcertBooking from './pages/ConcertBooking';
 
 import TicketDashboard from './pages/TicketDashboard';
+import AboutSection from './pages/AboutSection';
+import ScoreBoard from './pages/ScoreBoard';
 
 
 
@@ -27,6 +32,16 @@ import TicketDashboard from './pages/TicketDashboard';
 // Replace with your actual backend URL
 // App.jsx or Socket config file
 
+
+
+const ProtectedRoute = ({ children }) => {
+  const { token, loading } = useAuth();
+
+  if (loading) return null; // Wait for context to load
+  if (!token) return <Navigate to="/login" replace />;
+
+  return children;
+};
 
 
 
@@ -50,7 +65,7 @@ function App() {
             <Route path="/events" element={<EventsExplorer />} />
             <Route path="/register/:eventId" element={<RegisterForm />} />
             {/* Pass the global socket instance to the scanner */}
-            <Route path='/scan' element={<ScannerPage socket={socket} />} />
+            {/* <Route path='/scan' element={<ScannerPage socket={socket} />} /> */}
             <Route path='/terms-and-conditions' element={<TermsAndConditions />} />
             <Route path='/contact' element={<Contact />} />
 
@@ -58,8 +73,11 @@ function App() {
             <Route path="/concerts" element={<ConcertShowcase />} />
             <Route path="/concerts/book/:id" element={<ConcertBooking />} />
             <Route path="/ticket-dashboard" element={<TicketDashboard />}/>
+            <Route path='/about' element={<AboutSection/>}/>
+            <Route path='/score-board' element={<ScoreBoard/>}/>
 
 
+            {/* <Route path='' */}
 
             <Route
               path="/dashboard"
@@ -71,11 +89,12 @@ function App() {
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+
         </main>
 
         <Footer />
-
-        <Toaster theme="dark" richColors position="top-right" />
+              <Analytics/>
+        <Toaster theme="dark" richColors position="top-right" closeButton />
       </div>
     </Router>
   );

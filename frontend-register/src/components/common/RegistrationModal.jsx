@@ -85,7 +85,7 @@ const RegistrationModal = ({ show, onClose }) => {
 
               {/* Footer Terms */}
               <div className="mt-8 pt-6 border-t border-white/5">
-                <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">
+                <p className="text-[12px] text-gray-600 uppercase tracking-widest font-bold">
                   By joining, you agree to our <br/>
                   <button 
                     onClick={() => navigate('/terms-and-conditions')} 

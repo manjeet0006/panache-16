@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAssignedEvents, submitScore } from '../controllers/judging.js';
+import { getAssignedEvents, getLeaderBoard, submitScore } from '../controllers/judging.js';
 import { judgeLogin } from '../controllers/authController.js';
 import { protect } from '../middleware/auth.js';
 
@@ -12,5 +12,7 @@ router.post('/login', judgeLogin);
 // The 'protect' middleware ensures the user is logged in
 router.get('/assigned/:judgeId', protect, getAssignedEvents);
 router.post('/submit', protect, submitScore);
+
+router.get('/score' , getLeaderBoard )
 
 export default router;

@@ -106,6 +106,8 @@ model Team {
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
 
+  teamEmail String @default("placeholder@example.com")
+
   // External (or limited internal) teams link to Invite Code
   inviteId String?      @unique
   invite   EventInvite?
@@ -147,6 +149,8 @@ model Member {
 
   teamId String
   team   Team   @relation(fields: [teamId], references: [id])
+
+  entryLogs EntryLog[]
 }
 
 // --- JUDGING & ENTRY TRACKING ---
@@ -202,9 +206,14 @@ model EntryLog {
   concertTicketId String?
   concertTicket   ConcertTicket? @relation(fields: [concertTicketId], references: [id])
 
+  // ✅ OPTION C: It's a specific Team Member
+  memberId String?
+  member   Member? @relation(fields: [memberId], references: [id])
+
   // Indexes for fast lookup
   @@index([teamId, scannedAt])
   @@index([concertTicketId, scannedAt])
+  @@index([memberId, scannedAt])
 }
 
 model RegistrationRequest {
@@ -311,7 +320,8 @@ model ConcertTicket {
 
   // DUAL QR CODES
   arenaCode String @unique
-  isEnterArena Boolean @default(false)
+  isEnterArena    Boolean @default(false) // Tracks Celebrity Gate entry
+  isEnterMainGate Boolean @default(false) // Tracks Main Gate entry (NEW)
 
   createdAt DateTime   @default(now())
   entryLogs EntryLog[]
@@ -321,4 +331,13 @@ enum TicketTier {
   SILVER
   GOLD
   PLATINUM
+}
+
+
+model LeaderBoard{
+  id String @id @default(uuid())
+  teamName String
+  score   String
+  collegeName String?
+  deptName   String?
 }

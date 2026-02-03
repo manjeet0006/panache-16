@@ -6,7 +6,9 @@ import {
   Music, Mic2, Star, Camera
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import API from '../api';
+
+import ConcertShowcaseSkeleton from '@/components/loading/ConcertShowcaseSkeleton';
+import API from '@/api';
 
 const ConcertShowcase = () => {
     const navigate = useNavigate();
@@ -18,9 +20,10 @@ const ConcertShowcase = () => {
         const fetchData = async () => {
             try {
                 const res = await API.get('/concert/all');
+                console.log(res.data);
                 setConcerts(res.data);
             } catch (err) {
-                console.erroffir("Failed to load lineup", err);
+                console.error("Failed to load lineup", err);
             } finally {
                 setLoading(false);
             }
@@ -30,9 +33,7 @@ const ConcertShowcase = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
-                <Loader2 className="text-pink-500 animate-spin" size={40} />
-            </div>
+            <ConcertShowcaseSkeleton/>
         );
     }
 
@@ -57,9 +58,9 @@ const ConcertShowcase = () => {
                 <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} className="relative z-10">
                     <div className="flex items-center justify-center gap-3 mb-8">
                         <Sparkles className="text-pink-500" size={16} />
-                        <span className="text-[10px] font-black tracking-[0.6em] uppercase text-gray-400 italic">Experience The Unseen</span>
+                        <span className="text-[12px] font-black tracking-[0.6em] uppercase text-gray-400 italic">Experience The Unseen</span>
                     </div>
-                    <h1 className="text-[12vw] md:text-[14vw] leading-[0.75] font-black italic tracking-tighter uppercase mb-6">
+                    <h1 className="text-[14vw] md:text-[16vw] leading-[0.75] font-black italic tracking-tighter uppercase mb-6">
                         STAR<br /><span className="text-outline text-transparent">NIGHTS</span>
                     </h1>
                 </motion.div>
@@ -118,6 +119,9 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
         return () => observer.disconnect();
     }, [onInView]);
 
+    const prices = concert.tierDetails?.map(tier => Number(tier.price));
+    const minPrice = prices && prices.length > 0 ? Math.min(...prices) : null;
+
     return (
         <section 
             ref={sectionRef} 
@@ -163,7 +167,7 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
                 <div className="lg:col-span-5 lg:order-2 text-center lg:text-left order-1">
                     <div className="flex items-center justify-center lg:justify-start gap-3 mb-4 lg:mb-6">
                         <Mic2 size={16} className="text-pink-500" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500">Headlining Act</span>
+                        <span className="text-[12px] font-black uppercase tracking-[0.5em] text-gray-500">Headlining Act</span>
                     </div>
 
                     <h3 className="text-[15vw] sm:text-[12vw] lg:text-9xl font-black uppercase italic leading-[0.85] tracking-tighter mb-6 group">
@@ -195,16 +199,16 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
                             0{index + 1}
                         </div>
                         <div className="text-left">
-                            <p className="text-[9px] font-black uppercase text-pink-500 tracking-[0.4em] mb-1">{concert.dayLabel}</p>
+                            <p className="text-[11px] font-black uppercase text-pink-500 tracking-[0.4em] mb-1">{concert.dayLabel}</p>
                             <div className="flex items-center gap-2 text-white/50">
                                 <Calendar size={12} />
-                                <p className="text-[10px] font-bold uppercase tracking-widest">{new Date(concert.date).toDateString()}</p>
+                                <p className="text-[12px] font-bold uppercase tracking-widest">{new Date(concert.date).toDateString()}</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="w-full lg:w-auto p-5 lg:p-6 border-l-2 border-pink-500 bg-white/5 backdrop-blur-sm rounded-r-2xl max-w-md lg:max-w-xs text-left">
-                        <p className="text-[10px] text-gray-400 font-bold leading-relaxed uppercase tracking-widest">
+                        <p className="text-[12px] text-gray-400 font-bold leading-relaxed uppercase tracking-widest">
                             Catch {concert.artistName} performing live at the VGU Main Arena. An exclusive night of electronic and visual storytelling.
                         </p>
                     </div>
@@ -217,20 +221,22 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
                         whileInView={{ opacity: 1, y: 0 }} 
                         className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 lg:p-8 rounded-[2rem] shadow-2xl"
                     >
-                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-                            Access Pass <Star size={10} className="text-yellow-500" />
+                        <p className="text-[12px] font-black text-gray-300 uppercase tracking-widest mb-4 flex items-center justify-between">
+                            {minPrice ? 'Starts From' : 'Access Pass'} <Star size={10} className="text-yellow-500" />
                         </p>
                         <div className="mb-6 lg:mb-8">
                             <div className="flex items-baseline gap-2">
-                                <span className="text-4xl lg:text-5xl font-black italic tracking-tighter text-white">₹{concert.prices?.SILVER || '499'}</span>
-                                <span className="text-[10px] text-gray-600 font-black">INR</span>
+                                <span className="text-4xl lg:text-5xl font-black italic tracking-tighter text-white">
+                                    {minPrice ? `₹${minPrice}` : 'TBA'}
+                                </span>
                             </div>
                         </div>
                         <button 
                             onClick={onBook} 
-                            className="w-full py-4 lg:py-5 bg-white text-black font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl flex items-center justify-center gap-3 hover:bg-pink-600 hover:text-white transition-all transform hover:scale-[1.05]"
+                            disabled={!minPrice}
+                            className="w-full py-4 lg:py-5 bg-white text-black font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl flex items-center justify-center gap-3 hover:bg-pink-600 hover:text-white transition-all transform hover:scale-[1.05] disabled:bg-gray-600 disabled:cursor-not-allowed"
                         >
-                            Get Tickets <Ticket size={16} />
+                            {minPrice ? 'Get Tickets' : 'Coming Soon'} <Ticket size={16} />
                         </button>
                     </motion.div>
                 </div>

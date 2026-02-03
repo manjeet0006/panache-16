@@ -1,19 +1,12 @@
 import express from 'express';
-import { prisma } from '../db.js';
+import { searchTicket, markEventEntry, markEventExit, markConcertEntry } from '../controllers/scanning.js';
 
 const router = express.Router();
 
-router.get('/team-history/:teamId', async (req, res) => {
-  try {
-    const history = await prisma.entryLog.findMany({
-      where: { teamId: req.params.teamId },
-      orderBy: { scannedAt: 'desc' },
-      take: 5
-    });
-    res.json(history);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch logs" });
-  }
-});
+router.post('/search', searchTicket);
+router.post('/event/entry', markEventEntry);
+router.post('/event/exit', markEventExit);
+router.post('/concert/entry', markConcertEntry);
+
 
 export default router;

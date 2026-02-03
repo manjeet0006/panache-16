@@ -40,3 +40,24 @@ export const submitScore = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+
+export const getLeaderBoard = async (req, res) => {
+  try {
+    // Fetch all entries
+    const entries = await prisma.leaderBoard.findMany();
+
+    // Sort manually because 'score' is a String in your database
+    const sortedEntries = entries.sort((a, b) => {
+      const scoreA = parseFloat(a.score) || 0;
+      const scoreB = parseFloat(b.score) || 0;
+      return scoreB - scoreA; // Descending order (Highest first)
+    });
+
+    res.status(200).json(sortedEntries);
+  } catch (error) {
+    console.error("Leaderboard Fetch Error:", error);
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
+  }
+};
