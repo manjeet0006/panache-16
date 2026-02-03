@@ -2,6 +2,10 @@ import { prisma } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { ticketCache } from '../index.js';
+import { v4 as uuidv4 } from "uuid";
+import { google } from "googleapis";
+import path from "path";
+
 
 
 export const adminLogin = async (req, res) => {
@@ -184,14 +188,31 @@ export const deleteEvent = async (req, res) => {
   const { eventId } = req.params;
 
   try {
-    await prisma.$transaction([
-      prisma.eventInvite.deleteMany({
+    await prisma.$transaction(async (tx) => {
+      // 1️⃣ Delete members of teams in this event
+      await tx.member.deleteMany({
+        where: {
+          team: {
+            eventId: eventId,
+          },
+        },
+      });
+
+      // 2️⃣ Delete teams of this event
+      await tx.team.deleteMany({
         where: { eventId },
-      }),
-      prisma.event.delete({
+      });
+
+      // 3️⃣ Delete event invites
+      await tx.eventInvite.deleteMany({
+        where: { eventId },
+      });
+
+      // 4️⃣ Finally delete the event
+      await tx.event.delete({
         where: { id: eventId },
-      }),
-    ]);
+      });
+    });
 
     res.json({ message: "Event deleted successfully" });
   } catch (error) {
@@ -199,6 +220,8 @@ export const deleteEvent = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 
 // Department Creation
@@ -451,55 +474,320 @@ export const updateInquiryStatus = async (req, res) => {
 // --- 6. SECRET CODE GENERATION ---
 
 // Generate unique codes for external participants
-export const generateSecretCodes = async (req, res) => {
-  const { eventId, collegeId, count } = req.body; // ✅ ADD collegeId
 
-  if (!collegeId) {
-    return res.status(400).json({ error: "collegeId is required for external invites" });
+export const generateInviteCodes = async (req, res) => {
+  const { eventId, count } = req.body;
+
+  // Validation
+  if (!eventId || !count) {
+    return res.status(400).json({
+      error: "eventId and count are required",
+    });
   }
 
   try {
     const invites = [];
 
-    for (let i = 0; i < count; i++) {
-      const randomPart = crypto.randomBytes(2).toString('hex').toUpperCase();
-      const code = `EXT-${randomPart}`;
+  for (let i = 0; i < count; i++) {
+  const code = `EXT-${uuidv4().slice(0, 6).toUpperCase()}`;
 
-      invites.push({
-        code,
-        eventId,
-        collegeId, // 🔥 FIX HERE
-      });
-    }
+  invites.push({
+    code,
+    eventId,
+  });
+}
+
 
     await prisma.eventInvite.createMany({
       data: invites,
-      skipDuplicates: true
+      skipDuplicates: true,
     });
 
-    res.status(201).json({
-      message: `${count} codes generated`,
-      codes: invites.map(i => i.code)
+    return res.json({
+      message: "Invite codes generated successfully",
+      eventId,
+      totalGenerated: invites.length,
+      codes: invites.map(i => i.code),
     });
-
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Invite generation failed:", error);
+    return res.status(500).json({
+      error: "Failed to generate invite codes",
+    });
   }
 };
+
+
+
 
 // See all codes to find an unused one to give to a student
 export const getAvailableCodes = async (req, res) => {
   const { eventId } = req.params;
+
   try {
     const codes = await prisma.eventInvite.findMany({
-      where: { eventId, isUsed: false },
-      select: { code: true }
+      where: { eventId }, // returns BOTH used & unused
+      select: {
+        code: true,
+        isUsed: true,
+        usedByTeam: {
+          select: {
+            id: true,
+            teamName: true,
+            paymentStatus: true,
+            college: {
+              select: { name: true },
+            },
+            department: {
+              select: { name: true },
+            },
+            members: {
+              select: {
+                name: true,
+                phone: true,
+                isLeader: true,
+              },
+            },
+          },
+        },
+      },
+      // ❌ orderBy removed as requested
     });
+
     res.json(codes);
+  } catch (error) {
+    console.error("getAvailableCodes error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+export const deleteInviteCode = async (req, res) => {
+  const { code } = req.params;
+
+  try {
+    await prisma.eventInvite.delete({
+      where: { code },
+    });
+
+    res.json({ message: "Invite code deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+export const syncEventSheet = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    /* ================= 1. FETCH EVENT & INVITES ================= */
+    const event = await prisma.event.findUnique({
+      where: { id },
+      include: {
+        invites: {
+          orderBy: { id: "desc" },
+          include: {
+            usedByTeam: {
+              include: {
+                college: true,
+                department: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    /* ================= 2. GOOGLE AUTH (FROM .ENV) ================= */
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        type: "service_account",
+        project_id: process.env.GOOGLE_PROJECT_ID,
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      },
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const sheets = google.sheets({ version: "v4", auth });
+
+    /* ================= 3. SPREADSHEET ID ================= */
+    const spreadsheetId =
+      event.spreadsheetId || process.env.GOOGLE_SHEET_ID_INVITES;
+
+    if (!spreadsheetId) {
+      return res.status(400).json({ error: "No Spreadsheet ID configured" });
+    }
+
+    /* ================= 4. SANITIZE TAB NAME ================= */
+    const tabName = event.name
+      .replace(/[\/\\\?\*\[\]\:]/g, "")
+      .substring(0, 30);
+
+    /* ================= 5. CHECK / CREATE TAB ================= */
+    const docMetadata = await sheets.spreadsheets.get({ spreadsheetId });
+
+    let targetSheet = docMetadata.data.sheets.find(
+      (s) => s.properties.title.toLowerCase() === tabName.toLowerCase()
+    );
+
+    let sheetId;
+
+    if (!targetSheet) {
+      const createResponse = await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        resource: {
+          requests: [{ addSheet: { properties: { title: tabName } } }],
+        },
+      });
+
+      sheetId =
+        createResponse.data.replies[0].addSheet.properties.sheetId;
+    } else {
+      sheetId = targetSheet.properties.sheetId;
+    }
+
+    /* ================= 6. PREPARE DATA ================= */
+    const syncTime = new Date().toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
+
+    const rows = [
+      ["PANACHE 2026"],
+      [event.name.toUpperCase()],
+      [`Last Synced: ${syncTime}`, `Total Codes: ${event.invites.length}`],
+      [],
+      [
+        "Invite Code",
+        "Status",
+        "Team Name",
+        "College / Institute",
+        "Department",
+        "Payment Status",
+        "Assigned Logs",
+        "Invite Link",
+      ],
+    ];
+
+    event.invites.forEach((invite) => {
+      const team = invite.usedByTeam;
+      const inviteLink = `https://panache-16.vercel.app/register/${event.id}?secretCode=${invite.code}`;
+
+      rows.push([
+        invite.code,
+        invite.isUsed ? "USED" : "AVAILABLE",
+        team?.teamName || "-",
+        team?.college?.name || "-",
+        team?.department?.name || "External",
+        team?.paymentStatus || "-",
+        team ? "See Logs" : "-",
+        inviteLink,
+      ]);
+    });
+
+    /* ================= 6.5 CLEAR OLD DATA ================= */
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId,
+      range: `'${tabName}'!A:Z`,
+    });
+
+    /* ================= 7. WRITE DATA ================= */
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `'${tabName}'!A1`,
+      valueInputOption: "USER_ENTERED",
+      resource: { values: rows },
+    });
+
+    /* ================= 8. FORMATTING ================= */
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      resource: {
+        requests: [
+          {
+            updateDimensionProperties: {
+              range: {
+                sheetId,
+                dimension: "COLUMNS",
+                startIndex: 0,
+                endIndex: 1,
+              },
+              properties: { pixelSize: 140 },
+              fields: "pixelSize",
+            },
+          },
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1 },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: { red: 0.8, green: 0, blue: 0 },
+                  textFormat: {
+                    foregroundColor: { red: 1, green: 1, blue: 1 },
+                    bold: true,
+                    fontSize: 16,
+                  },
+                  horizontalAlignment: "CENTER",
+                },
+              },
+              fields:
+                "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+            },
+          },
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 1, endRowIndex: 2 },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: { red: 0.95, green: 0.95, blue: 0.95 },
+                  textFormat: { bold: true, fontSize: 13 },
+                  horizontalAlignment: "CENTER",
+                },
+              },
+              fields:
+                "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
+            },
+          },
+          {
+            mergeCells: {
+              range: {
+                sheetId,
+                startRowIndex: 0,
+                endRowIndex: 2,
+                startColumnIndex: 0,
+                endColumnIndex: 8,
+              },
+              mergeType: "MERGE_ALL",
+            },
+          },
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 4, endRowIndex: 5 },
+              cell: {
+                userEnteredFormat: { textFormat: { bold: true } },
+              },
+              fields: "userEnteredFormat(textFormat)",
+            },
+          },
+        ],
+      },
+    });
+
+    res.json({
+      message: `Synced successfully to Google Sheet tab: ${tabName}`,
+    });
+  } catch (error) {
+    console.error("Sheet Sync Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
 
 // --- 7. LEADERBOARD & RESULTS ---
