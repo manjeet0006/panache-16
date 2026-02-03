@@ -12,7 +12,8 @@ import {
   X,
   ChevronDown,
   Filter,
-  Save
+  Save,
+  RefreshCw // Added Icon
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import API from "../../api";
@@ -45,6 +46,7 @@ export default function Events() {
 
   /* ---------------- LOGIC ---------------- */
   const fetchEvents = async () => {
+    setLoading(true); // Ensure loading state is active during sync
     try {
       const res = await API.get("/admin/events");
       setEventData(res.data);
@@ -194,12 +196,26 @@ export default function Events() {
                     Management Console
                 </p>
             </div>
-            <button
-                onClick={() => openEditor()}
-                className="bg-white text-black hover:bg-indigo-500 hover:text-white transition-all px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg hover:shadow-indigo-500/20"
-            >
-                <Plus size={16} strokeWidth={3} /> Create Event
-            </button>
+            
+            <div className="flex items-center gap-3">
+                {/* SYNC BUTTON */}
+                <button
+                    onClick={fetchEvents}
+                    disabled={loading}
+                    className="h-10 w-10 flex items-center justify-center bg-white/[0.03] border border-white/10 hover:bg-white/[0.08] text-white rounded-xl transition-all shadow-sm"
+                    title="Sync Data"
+                >
+                    <RefreshCw size={18} className={loading ? "animate-spin text-indigo-400" : "text-gray-400"} />
+                </button>
+
+                {/* CREATE BUTTON */}
+                <button
+                    onClick={() => openEditor()}
+                    className="bg-white text-black hover:bg-indigo-500 hover:text-white transition-all px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg hover:shadow-indigo-500/20"
+                >
+                    <Plus size={16} strokeWidth={3} /> Create Event
+                </button>
+            </div>
         </div>
 
         {/* Filter Bar */}
@@ -443,7 +459,7 @@ function Input({ label, value, onChange, type = "text", placeholder }) {
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         className="w-full bg-black/40 border border-white/10 px-4 py-3.5 rounded-xl text-sm text-white placeholder:text-gray-700
-                   focus:border-indigo-500/50 focus:bg-black/60 focus:outline-none transition-all"
+                    focus:border-indigo-500/50 focus:bg-black/60 focus:outline-none transition-all"
       />
     </div>
   );
@@ -457,7 +473,7 @@ function Textarea({ label, value, onChange, height = "h-32" }) {
         value={value}
         onChange={e => onChange(e.target.value)}
         className={`w-full bg-black/40 border border-white/10 px-4 py-3.5 rounded-xl text-sm text-white resize-none
-                   focus:border-indigo-500/50 focus:bg-black/60 focus:outline-none transition-all ${height}`}
+                    focus:border-indigo-500/50 focus:bg-black/60 focus:outline-none transition-all ${height}`}
       />
     </div>
   );
