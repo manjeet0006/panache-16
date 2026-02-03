@@ -31,6 +31,7 @@ const allowedOrigins = [
   "https://panache.vercel.app",
   "https://panache-16.vercel.app",
   "https://panache-16-gghv.vercel.app",
+  "https://adminpanache16.vercel.app",
   "*"
 ];
 
