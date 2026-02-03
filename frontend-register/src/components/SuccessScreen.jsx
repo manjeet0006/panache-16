@@ -3,10 +3,11 @@ import { QRCodeCanvas } from 'qrcode.react'; // 1. Use the Canvas version
 import { toPng } from 'html-to-image';
 import { Download, MapPin, Calendar, Info, CheckCircle, Home, CreditCard, ShieldCheck, Zap, Loader2 } from 'lucide-react';
 
-const SuccessScreen = ({ data, eventName, teamName, teamSize, isVgu, onHome }) => {
+const SuccessScreen = ({ data, eventName, teamName, teamSize, isVgu, onHome, dateLabel, eventDate }) => {
     const team = data;
     // Fallback if ticketCode is missing
     const ticketCode = team?.ticketCode?.trim() || "PENDING";
+    // const year = eventDate ? new Date(eventDate).getFullYear() : '2026';
     
     const [isDownloading, setIsDownloading] = useState(false);
     const ticketRef = useRef(null);
@@ -166,7 +167,7 @@ const SuccessScreen = ({ data, eventName, teamName, teamSize, isVgu, onHome }) =
                                     <Calendar size={14} className="text-pink-600" />
                                     <div className="flex flex-col">
                                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">Date</span>
-                                        <span className="text-[12px] font-black text-black uppercase">Feb 12-14</span>
+                                        <span className="text-[12px] font-black text-black uppercase">{dateLabel || "TBD"}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100/50">

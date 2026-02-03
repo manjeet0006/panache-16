@@ -1,7 +1,8 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+import { customAlphabet } from 'nanoid';
 import { prisma } from '../db.js';
+const nanoid = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 8);
 import { updateConcertTicketInCache } from '../index.js';
 import dotenv from 'dotenv';
 import sendEmail from '../utils/email.js';
@@ -141,7 +142,7 @@ export const verifyGuestPayment = async (req, res) => {
         }
         
         // D. Generate Unique QR Codes
-        const arenaCode = `STAR-${uuidv4().slice(0, 6).toUpperCase()}`;
+        const arenaCode = `STAR-${nanoid()}`;
 
         // E. Create Ticket and Update Counts in an Atomic Transaction
         const ticket = await prisma.$transaction(async (tx) => {

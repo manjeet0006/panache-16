@@ -589,6 +589,8 @@ const Dashboard = () => {
                     teamSize={selectedTicket.members?.length || 0}
                     isVgu={isInternal(selectedTicket)}
                     onHome={() => setSelectedTicket(null)}
+                    dateLabel={selectedTicket.event?.dateLabel}
+                    eventDate={selectedTicket.event?.eventDate}
                 />
             )}
 

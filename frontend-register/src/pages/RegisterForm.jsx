@@ -261,6 +261,8 @@ const RegisterForm = () => {
                 teamSize={formData.members.length}
                 isVgu={isVgu}
                 onHome={() => navigate('/')}
+                dateLabel={event?.dateLabel}
+                eventDate={event?.eventDate}
             />
         );
     }

@@ -1,6 +1,8 @@
 import { prisma } from "../db.js";
 import { v4 as uuidv4 } from 'uuid';
+import { customAlphabet } from 'nanoid';
 import Razorpay from 'razorpay';
+const nanoid = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 8);
 import crypto from 'crypto';
 import { updateTeamInCache } from '../index.js';
 import sendEmail from "../utils/email.js";
@@ -144,7 +146,7 @@ export const submitRegistration = async (req, res) => {
                     paymentStatus: "APPROVED",
                     transactionId: isVgu ? `VGU_INTERNAL_${Date.now()}` : razorpay_payment_id,
                     ticketCode: (!isVgu && event.allowOutside)
-                        ? `PAN-${uuidv4().slice(0, 6).toUpperCase()}`
+                        ? `PAN-${nanoid()}`
                         : null,
                     event: { connect: { id: eventId } },
                     college: { connect: { id: actualCollegeId } },
