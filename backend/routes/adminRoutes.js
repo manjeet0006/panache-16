@@ -26,8 +26,10 @@ router.get('/inquiries', adminCtrl.getInquiries);
 router.patch('/inquiry/:id', adminCtrl.updateInquiryStatus);
 
 // 3. Stage 2: Secret Code / Invite Management
-router.post('/invites/generate', adminCtrl.generateSecretCodes);
+router.post('/invites/generate', adminCtrl.generateInviteCodes);
 router.get('/invites/available/:eventId', adminCtrl.getAvailableCodes);
+router.delete("/invites/:code", adminCtrl.deleteInviteCode);
+router.post("/events/:id/sync-sheet", adminCtrl.syncEventSheet);
 
 // 4. Infrastructure Management
 router.post('/crevents', adminCtrl.createEvent);
