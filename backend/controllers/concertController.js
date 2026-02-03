@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { prisma } from '../db.js';
 import { updateConcertTicketInCache } from '../index.js';
 import dotenv from 'dotenv';
+import sendEmail from '../utils/email.js';
+
 
 dotenv.config();
 
@@ -193,6 +195,26 @@ export const verifyGuestPayment = async (req, res) => {
         updateConcertTicketInCache(ticket.id).catch(console.error);
 
         console.log(`🎟️ Ticket Generated for ${name} (${tier})`);
+
+        // Send confirmation email
+        if (email) {
+            const concert = await prisma.concert.findUnique({
+                where: { id: concertId },
+            });
+
+            const subject = 'Your Panache Concert Ticket!';
+            const templateData = {
+                name: name,
+                eventName: "Panache", // Static for now
+                artistName: concert?.artistName || "Featured Artist",
+                ticketCode: ticket.arenaCode,
+                quantity: 1,
+                tier: tier,
+                date: concert?.dayLabel || "TBA",
+                venue: "VGU Campus, Jaipur" // Static for now
+            };
+            sendEmail(email, subject, 'concertTicket', templateData).catch(console.error);
+        }
 
         res.status(200).json({ 
             status: "success", 

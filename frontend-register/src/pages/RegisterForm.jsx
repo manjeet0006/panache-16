@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
     Loader2, Lock, ArrowRight, MessageSquare, ArrowLeft, Plus, ShieldCheck,
-    Check
+    Check, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import API from '../api';
@@ -20,9 +20,13 @@ const RegisterForm = () => {
 
     // Determine user type from URL (?isVgu=true)
     const isVgu = searchParams.get('isVgu') === 'true';
+    const urlSecretCode = searchParams.get('secretCode');
 
     // --- 1. STATE MANAGEMENT ---
-    const [step, setStep] = useState(isVgu ? 'FINAL' : 'CHECK');
+    const [step, setStep] = useState(
+        isVgu || !!urlSecretCode ? 'FINAL' : 'CHECK'
+    );
+
     const [loading, setLoading] = useState(false);
     const [event, setEvent] = useState(null);
     const [colleges, setColleges] = useState([]);
@@ -41,8 +45,21 @@ const RegisterForm = () => {
         members: [{ name: '', phone: '', enrollment: '', isLeader: true }],
         collegeId: '',
         customCollegeName: '',
-        departmentId: ''
+        departmentId: '',
+        emailId: ''
     });
+
+
+    useEffect(() => {
+        if (urlSecretCode) {
+            setFormData(prev => ({
+                ...prev,
+                secretCode: urlSecretCode.toUpperCase(),
+            }));
+        }
+    },);
+
+    // console.log(formData, 'form');
 
     // --- 2. DATA FETCHING ---
     useEffect(() => {
@@ -233,7 +250,6 @@ const RegisterForm = () => {
         );
     }
 
-    console.log(registrationSuccessData + ' registration data');
 
     // Optimized render guard
     if (step === 'SUCCESS' && registrationSuccessData?.ticketCode) {
@@ -253,12 +269,25 @@ const RegisterForm = () => {
         <div className="min-h-screen bg-[#050505] pt-8 pb-20 px-4 text-white">
             <div className="max-w-2xl mx-auto">
 
+                {step === 'REQUEST_LOGGED' && (
+                    <div className="bg-white/5 mt-25 border border-white/10 rounded-[2.5rem] p-10 text-center backdrop-blur-xl animate-in fade-in duration-500">
+                        <ShieldCheck className="text-green-500 mx-auto mb-6" size={40} />
+                        <h2 className="text-3xl font-black uppercase italic mb-4">Inquiry Submitted</h2>
+                        <p className="text-gray-400 text-[15px] mb-10">
+                            Your form is submitted. Our team will contact you within 24 hours.
+                        </p>
+                        <button onClick={() => navigate('/')} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 hover:bg-pink-500 hover:text-white transition-all">
+                            Return to Home <ArrowRight size={18} />
+                        </button>
+                    </div>
+                )}
+
                 {/* GATEWAY: Code Verification for Outsiders */}
                 {!isVgu && step === 'CHECK' && (
-                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 text-center backdrop-blur-xl">
+                    <div className="bg-white/5 mt-25 border border-white/10 rounded-[2.5rem] p-10 text-center backdrop-blur-xl">
                         <Lock className="text-pink-500 mx-auto mb-6" size={40} />
                         <h2 className="text-3xl font-black uppercase italic mb-4">Verification Gateway</h2>
-                        <p className="text-gray-400 text-sm mb-10">Outside participants require a <strong>Secret Invite Code</strong>.</p>
+                        <p className="text-gray-400 text-[15px] mb-10">Outside participants require a <strong>Secret Invite Code</strong>.</p>
                         <div className="space-y-4">
                             <button onClick={() => setStep('FINAL')} className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase flex items-center justify-center gap-2 hover:bg-pink-500 hover:text-white transition-all">
                                 I have a Code <ArrowRight size={18} />
@@ -283,7 +312,7 @@ const RegisterForm = () => {
 
                 {/* FINAL REGISTRATION FORM */}
                 {step === 'FINAL' && (
-                    <form onSubmit={handleFinalSubmit} className="space-y-8 animate-in fade-in zoom-in duration-300">
+                    <form onSubmit={handleFinalSubmit} className="space-y-8 pt-15 animate-in fade-in zoom-in duration-300">
                         <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 space-y-8 backdrop-blur-md">
                             <header>
                                 <h2 className="text-4xl font-black italic uppercase tracking-tighter">Final <span className="text-pink-500">Registration</span></h2>
@@ -292,8 +321,19 @@ const RegisterForm = () => {
 
                             {/* Inputs */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input className="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Team Name" onChange={e => setFormData({ ...formData, teamName: e.target.value })} required />
-                                <input className="w-full bg-pink-500/5 border border-pink-500/20 p-4 rounded-xl outline-none text-pink-500 font-bold uppercase" placeholder="Secret Code" onChange={e => setFormData({ ...formData, secretCode: e.target.value })} required />
+                                <input className="w-full bg-black/40 border uppercase border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Team Name" onChange={e => setFormData({ ...formData, teamName: e.target.value })} required />
+                                <div className="relative">
+                                    <input className="w-full bg-pink-500/5 border border-pink-500/20 p-4 rounded-xl outline-none text-pink-500 font-bold uppercase" placeholder="Secret Code" value={formData.secretCode} onChange={e => setFormData({ ...formData, secretCode: e.target.value })} required />
+                                    <div className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer group">
+                                        <Info size={16} className="text-pink-500/50" />
+                                        <div className="absolute bottom-full mb-2 right-0 hidden group-hover:block bg-black border border-white/10 p-2 rounded-lg text-xs w-max">
+                                            The code is provided by Panache tech team.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4">
+                                <input className="w-full bg-black/40 border border-white/5 p-4 rounded-xl outline-none focus:border-pink-500" placeholder="Email Id" onChange={e => setFormData({ ...formData, emailId: e.target.value })} required />
                             </div>
 
                             {/* College Locking Logic */}
@@ -367,11 +407,11 @@ const RegisterForm = () => {
                             </div>
 
                             {!isVgu && (
-                                <div className="p-6 bg-pink-500/5 border border-pink-500/20 rounded-3xl flex items-start gap-4">
+                                <div className="p-5 bg-pink-500/5 border border-pink-500/20 rounded-3xl flex items-start gap-4">
                                     <ShieldCheck className="text-pink-500" size={24} />
                                     <div>
-                                        <p className="text-xs font-black uppercase text-pink-500">Payment Check</p>
-                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Fee: <span className='text-[12px] text-gray-300 ' > ₹{event?.eventPrice || 200}  </span>   Secured by Razorpay</p>
+                                        <p className="text-sm font-black uppercase text-pink-500">Payment Check</p>
+                                        <p className="text-[12px] text-gray-500 uppercase tracking-widest mt-1">Fee: <span className='text-[17px] font-extrabold text-gray-300 ' > ₹{event?.eventPrice || 200}  </span>   Secured by Razorpay</p>
                                     </div>
                                 </div>
                             )}
@@ -401,7 +441,7 @@ const RegisterForm = () => {
                                 </label>
                             </div>
 
-                            <button type="submit" disabled={loading || !acceptedTerms} className="w-full bg-gradient-to-r from-pink-500 to-purple-600 py-6 rounded-2xl font-black uppercase text-2xl shadow-xl hover:scale-[1.01] transition-all disabled:opacity-30 disabled:grayscale disabled:hover:scale-100">
+                            <button type="submit" disabled={loading || !acceptedTerms} className="w-full bg-gradient-to-r mt-2 from-pink-500 to-purple-600 py-4 rounded-2xl font-black uppercase text-2xl shadow-xl hover:scale-[1.04] transition-all disabled:opacity-30 disabled:grayscale disabled:hover:scale-100">
                                 {loading ? <Loader2 className="animate-spin" /> : "Complete Registration"}
                             </button>
                         </div>

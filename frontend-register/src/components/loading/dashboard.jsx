@@ -2,7 +2,7 @@ import React from 'react';
 
 const DashboardSkeleton = () => {
     return (
-        <div className="min-h-screen bg-[#050505] text-white pt-15 md:pt-5 p-6 md:p-8 relative overflow-hidden flex flex-col md:flex-row gap-8">
+        <div className="min-h-screen  bg-[#050505] text-white pt-17 md:pt-17 p-6 md:p-8 relative overflow-hidden flex flex-col md:flex-row gap-8">
             
             {/* 1. Background Atmosphere (Consistent with app theme) */}
             <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">

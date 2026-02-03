@@ -1,14 +1,14 @@
 import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { 
+import {
     motion,
     useScroll,
     useSpring
 } from "framer-motion";
-import { 
-    ArrowLeft, ArrowUpRight, Music, Palette, 
-    Trophy, Gamepad2, Smartphone, Scale, 
-    Zap, Activity, 
+import {
+    ArrowLeft, ArrowUpRight, Music, Palette,
+    Trophy, Gamepad2, Smartphone, Scale,
+    Zap, Activity,
     Hash, Star
 } from 'lucide-react';
 
@@ -99,7 +99,7 @@ const DepartmentGrid = () => {
                 >
                     {/* Hover Gradient Background */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${dept.accent} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-                    
+
                     <div className="relative p-5 h-full flex flex-col justify-between z-10">
                         {/* Header */}
                         <div className="flex justify-between items-start">
@@ -126,7 +126,7 @@ const DepartmentGrid = () => {
                             </span>
                         </div>
                     </div>
-                    
+
                     {/* Tech Line Decoration */}
                     <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                 </motion.div>
@@ -147,19 +147,19 @@ const TermsAndConditions = () => {
     return (
         <div className="relative bg-[#030303] text-white selection:bg-pink-500/30 font-sans min-h-screen">
             <NoiseOverlay />
-            
+
             {/* Progress Bar */}
             <motion.div
                 style={{ scaleX }}
                 className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 origin-left z-50 shadow-[0_0_20px_rgba(236,72,153,0.5)]"
             />
-            
+
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
                 <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-[120px]" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-900/05 rounded-full blur-[120px]" />
             </div>
-            
+
             {/* Navigation */}
             <nav className={`fixed top-0 w-full z-40 transition-all duration-300 border-b bg-[#030303]/80 backdrop-blur-xl border-white/5 py-3`}>
                 <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
@@ -177,7 +177,7 @@ const TermsAndConditions = () => {
 
             {/* Main Content */}
             <div ref={scrollRef} className="relative z-10 max-w-5xl mx-auto px-6 pt-32 lg:pt-48 pb-32">
-                
+
                 {/* Header */}
                 <header className="mb-24 lg:mb-32 text-center">
                     <ActiveScrollReveal>
@@ -188,9 +188,16 @@ const TermsAndConditions = () => {
                             </span>
                             Legal Archive v4.2
                         </div>
-                        <h1 className="font-display text-6xl md:text-8xl font-bold uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 leading-[0.9] mb-8">
+                        {/* <h1 className="font-display text-6xl md:text-8xl font-bold uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 leading-[0.9] mb-8">
                             Rulebook <br/>
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500">Registry</span>
+                        </h1> */}
+                        <h1 className="font-extrabold text-6xl md:text-8xl uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500 leading-[0.9] mb-8">
+                            Rulebook <br />
+                            {/* Updated Gradient: Orange (pink) -> Red (purple) -> Gold (blue) */}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">
+                                Registry
+                            </span>
                         </h1>
                         <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
                             The definitive guide to conduct, participation, and competition standards for Panache S-16. Compliance is mandatory for all registered entities.
@@ -223,30 +230,30 @@ const TermsAndConditions = () => {
                         <ActiveScrollReveal>
                             <SectionHeader number="02" title="Participation Framework" />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                               <GlassCard title="Event Limit" icon={Hash} content="Strict limit of ONE event per student to ensure fair opportunity distribution. Exceptions for 'March of Minds'." />
-                               <GlassCard title="Exemptions" icon={Star} content="Support roles (Models, Instrument Accompanists) are exempt from the single-event cap." />
-                               <GlassCard title="Trophy Criteria" icon={Trophy} content="Departments must field candidates in 42 total events (29 mandatory) to qualify for the Rolling Trophy." />
+                                <GlassCard title="Event Limit" icon={Hash} content="Strict limit of ONE event per student to ensure fair opportunity distribution. Exceptions for 'March of Minds'." />
+                                <GlassCard title="Exemptions" icon={Star} content="Support roles (Models, Instrument Accompanists) are exempt from the single-event cap." />
+                                <GlassCard title="Trophy Criteria" icon={Trophy} content="Departments must field candidates in 42 total events (29 mandatory) to qualify for the Rolling Trophy." />
                             </div>
                         </ActiveScrollReveal>
                     </section>
 
-                     {/* SECTION 3: Registry Grid (Redesigned) */}
+                    {/* SECTION 3: Registry Grid (Redesigned) */}
                     <section>
-                       <ActiveScrollReveal>
-                         <SectionHeader number="03" title="Department Registry" />
-                         <div className="mt-12">
-                            <DepartmentGrid />
-                         </div>
-                       </ActiveScrollReveal>
+                        <ActiveScrollReveal>
+                            <SectionHeader number="03" title="Department Registry" />
+                            <div className="mt-12">
+                                <DepartmentGrid />
+                            </div>
+                        </ActiveScrollReveal>
                     </section>
-                    
+
                     {/* SECTION 4: Events */}
                     <section>
                         <ActiveScrollReveal>
                             <SectionHeader number="04" title="Event Protocols" />
                             <div className="space-y-16 mt-12">
                                 <CategoryGroup title="Cultural & Ethnic" icon={Zap}>
-                                    <DetailCard title="Sanskritic Sangam" specs={["30 Students", "7+1 Mins"]} desc="Ethnic ramp walk & cultural dance representing the allocated state. Audio track required 24h prior."/>
+                                    <DetailCard title="Sanskritic Sangam" specs={["30 Students", "7+1 Mins"]} desc="Ethnic ramp walk & cultural dance representing the allocated state. Audio track required 24h prior." />
                                     <DetailCard title="March of Minds" specs={["10 Students", "Opening Ceremony"]} desc="Disciplined march from gate to stage. Creative props (helmets/blueprints) highly encouraged." />
                                     <DetailCard title="Khao Gali" specs={["4 Students + 1 Faculty", "Sales Based"]} desc="State cuisine stalls. Currency coupons of 20/50/100 only. Winner decided by volume, not revenue." />
                                 </CategoryGroup>
@@ -272,22 +279,22 @@ const TermsAndConditions = () => {
                         <ActiveScrollReveal>
                             <SectionHeader number="05" title="Tech Ops" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                               <PleasantCard className="border-green-500/20 hover:border-green-500/40">
-                                   <div className="flex justify-between items-start mb-6">
-                                       <Smartphone size={32} className="text-green-500" />
-                                       <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] font-bold uppercase text-green-400">Mobile Only</span>
-                                   </div>
-                                   <h3 className="font-display text-2xl font-black text-white uppercase italic mb-2">E-Sports Arena</h3>
-                                   <p className="text-sm text-gray-400 mb-6">BGMI / Free Fire / COD Mobile</p>
-                                   <ul className="space-y-3">
+                                <PleasantCard className="border-green-500/20 hover:border-green-500/40">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <Smartphone size={32} className="text-green-500" />
+                                        <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] font-bold uppercase text-green-400">Mobile Only</span>
+                                    </div>
+                                    <h3 className="font-display text-2xl font-black text-white uppercase italic mb-2">E-Sports Arena</h3>
+                                    <p className="text-sm text-gray-400 mb-6">BGMI / Free Fire / COD Mobile</p>
+                                    <ul className="space-y-3">
                                         {["Squad Format (4 Players)", "Bring Your Own Device", "Anti-Cheat Active"].map((item, i) => (
                                             <li key={i} className="flex items-center gap-3 text-xs text-gray-300">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> {item}
                                             </li>
                                         ))}
                                     </ul>
-                               </PleasantCard>
-                               <PleasantCard className="border-cyan-500/20 hover:border-cyan-500/40">
+                                </PleasantCard>
+                                <PleasantCard className="border-cyan-500/20 hover:border-cyan-500/40">
                                     <div className="flex justify-between items-start mb-6">
                                         <Zap size={32} className="text-cyan-500" />
                                         <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-bold uppercase text-cyan-400">Robotics</span>
@@ -301,7 +308,7 @@ const TermsAndConditions = () => {
                                             </li>
                                         ))}
                                     </ul>
-                               </PleasantCard>
+                                </PleasantCard>
                             </div>
                         </ActiveScrollReveal>
                     </section>
@@ -314,7 +321,7 @@ const TermsAndConditions = () => {
                                 <div className="bg-[#050505] rounded-[23px] p-8 md:p-12 relative overflow-hidden">
                                     {/* Subtle shimmer effect inside */}
                                     <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px]" />
-                                    
+
                                     <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
                                         <Scale size={48} className="text-white shrink-0" />
                                         <div>
@@ -330,21 +337,21 @@ const TermsAndConditions = () => {
                             </div>
                         </ActiveScrollReveal>
                     </section>
-                    
+
                     {/* SECTION 7: Core Registry */}
                     <section>
                         <ActiveScrollReveal>
-                             <SectionHeader number="07" title="Core Registry" />
+                            <SectionHeader number="07" title="Core Registry" />
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-12">
                                 {[
-                                    {n:"Vishal Kumar", r:"Convener", p:"9661757779"},
-                                    {n:"Tarun Pratap Singh", r:"Co-Convener", p:"7849863839"},
-                                    {n:"Krishna Poddar", r:"Secretary", p:"8619295090"},
-                                    {n:"Ananya Priya", r:"Co-Secretary", p:"6299838371"},
-                                    {n:"Chetanprakash Kaushik", r:"Treasurer", p:"8488846789"},
-                                    {n:"Ritesh Chanda", r:"Mgmt Head", p:"8306617515"},
-                                    {n:"Umesh Gadhwal", r:"Venue Head", p:"8529115783"},
-                                    {n:"Nimmalapudi Akash", r:"Discipline", p:"8018177287"},
+                                    { n: "Vishal Kumar", r: "Convener", p: "9661757779" },
+                                    { n: "Tarun Pratap Singh", r: "Co-Convener", p: "7849863839" },
+                                    { n: "Krishna Poddar", r: "Secretary", p: "8619295090" },
+                                    { n: "Ananya Priya", r: "Co-Secretary", p: "6299838371" },
+                                    { n: "Chetanprakash Kaushik", r: "Treasurer", p: "8488846789" },
+                                    { n: "Ritesh Chanda", r: "Mgmt Head", p: "8306617515" },
+                                    { n: "Umesh Gadhwal", r: "Venue Head", p: "8529115783" },
+                                    { n: "Nimmalapudi Akash", r: "Discipline", p: "8018177287" },
                                 ].map((c, i) => (
                                     <PleasantCard key={i}>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-pink-500 mb-1">{c.r}</p>

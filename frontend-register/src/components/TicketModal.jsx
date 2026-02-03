@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import QRCode from 'react-qr-code';
+import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { X, Download, MapPin, Calendar, Zap, ShieldCheck, Music, Crown, Star, User, Loader2 } from 'lucide-react';
 
@@ -36,6 +36,7 @@ const TicketModal = ({ ticket, type, onClose }) => {
         black: '#000000',
         gray200: '#e5e7eb',
         gray400: '#9ca3af',
+        red400: '#B81C00',
         platinumText: '#cffafe',
     };
 
@@ -195,9 +196,9 @@ const TicketModal = ({ ticket, type, onClose }) => {
                         {/* BODY */}
                         <div className="px-6 pb-8 pt-2 flex flex-col items-center" style={{ backgroundColor: colors.white }}>
                             <div className="p-3 rounded-2xl mb-5 relative" style={{ backgroundColor: colors.white, border: `2px dashed ${colors.gray200}` }}>
-                                <QRCode value={data.code || "NO_CODE"} size={140} fgColor={colors.black} bgColor="transparent" level="Q" />
+                                <QRCodeSVG value={data.code || "NO_CODE"} size={160} fgColor={colors.black} bgColor={colors.white} level="H" />
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-11 h-11 rounded-md flex items-center justify-center shadow-sm" style={{ backgroundColor: colors.white, border: `2px solid ${colors.white}` }}>
+                                    <div className="w-10 h-10 rounded-md flex items-center justify-center shadow-sm" style={{ backgroundColor: colors.white, border: `2px solid ${colors.white}` }}>
                                         <div className="w-full h-full rounded-sm flex items-center justify-center" style={{ backgroundColor: colors.black }}>
                                             <span className="text-[10px] font-black" style={{ color: colors.white }}>P16</span>
                                         </div>
@@ -210,6 +211,8 @@ const TicketModal = ({ ticket, type, onClose }) => {
                                 {data.code}
                             </p>
                             <p className="text-[10px] font-bold uppercase tracking-widest mt-4" style={{ color: colors.gray400 }}>Non-Transferable</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: colors.red400 }}>One Time access Only</p>
+
 
                             {tier === 'PLATINUM' && (
                                 <div className="mt-6 w-full py-2 rounded-lg flex items-center justify-center gap-2" style={{ backgroundColor: '#ecfeff', border: `1px solid rgba(34, 211, 238, 0.3)` }}>
@@ -229,13 +232,13 @@ const TicketModal = ({ ticket, type, onClose }) => {
                     <button
                         onClick={handleDownload}
                         disabled={isDownloading}
-                        className="w-full mt-6 py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl flex items-center justify-center gap-3 transform active:scale-95 transition-all"
+                        className="w-full mt-6 py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[13px] shadow-2xl flex items-center justify-center gap-3 transform active:scale-95 transition-all"
                         style={{ background: theme.buttonBg, color: theme.buttonText, opacity: isDownloading ? 0.7 : 1 }}
                     >
                         {isDownloading ? (
-                            <><Loader2 size={16} className="animate-spin" /> Processing...</>
+                            <><Loader2 size={18} className="animate-spin" /> Processing...</>
                         ) : (
-                            <><Download size={16} /> Save High-Res Ticket</>
+                            <><Download size={18} /> Save Ticket</>
                         )}
                     </button>
                 </div>

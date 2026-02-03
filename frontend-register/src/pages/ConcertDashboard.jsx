@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Ticket, User, Calendar, MapPin, Music } from 'lucide-react';
 import API from '../api';
 import { toast } from 'sonner';
+import ConcertTicketSkeleton from '@/components/loading/ConcertDashboardSkeleton';
 
 const ConcertDashboard = () => {
     const navigate = useNavigate();
@@ -40,9 +41,7 @@ const ConcertDashboard = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-                <div className="text-white font-bold">Loading Your Ticket...</div>
-            </div>
+            <ConcertTicketSkeleton/>
         );
     }
 
