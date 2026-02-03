@@ -34,7 +34,7 @@ export default function CreateDepartment() {
 
   // --- LOGIC ---
 
-  const generateSecretCode = () => `VGU-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
+ const generateSecretCode = () => `VGU-${customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8)()}`;
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
