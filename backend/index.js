@@ -2,6 +2,7 @@ import express from 'express';
 import { formatInTimeZone } from 'date-fns-tz';
 import { createServer } from 'http'; // Required for WebSockets
 import { Server } from 'socket.io';   // Required for WebSockets
+import helmet from 'helmet';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './db.js';
@@ -14,6 +15,7 @@ import judgingRoutes from './routes/judgingRoutes.js';
 import scanningRoutes from './routes/scanningRoutes.js';
 import metaRoutes from './routes/meta.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { apiLimiter } from './middleware/rateLimiter.js';
 import concertRoutes from './routes/concertRoutes.js';
 // import emailRoutes from './routes/emailRoutes.js';
 import zlib from 'zlib';
@@ -21,6 +23,7 @@ import zlib from 'zlib';
 dotenv.config();
 
 const app = express();
+app.use(helmet());
 const httpServer = createServer(app); // Wrap express app
 
 app.set('trust proxy', 1);
@@ -33,7 +36,7 @@ const allowedOrigins = [
   "https://panache-16.vercel.app",
   "https://panache-16-gghv.vercel.app",
   "https://adminpanache16.vercel.app",
-  "*"
+  // "*"
 ];
 
 
@@ -50,6 +53,26 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+    // 1. Try standard Express IP (works if 'trust proxy' is set)
+    let clientIp = req.ip;
+
+    if (!clientIp || clientIp === '::1' || clientIp === '127.0.0.1') {
+        clientIp = req.headers['x-forwarded-for'] || req.headers['cf-connecting-ip'];
+    }
+
+
+    // The first one is usually the real client.
+    if (clientIp && clientIp.includes(',')) {
+        clientIp = clientIp.split(',')[0].trim();
+    }
+
+    // 4. Log it
+    console.log(`📡 Request: ${req.method} ${req.url} | From IP: ${clientIp}`);
+
+    next(); // Pass control to the next middleware/route
+});
 
 const io = new Server(httpServer, {
   cors: {
@@ -275,8 +298,40 @@ function notifySystemReady() {
 }
 
 // 3. Socket Logic
+const socketRateLimit = new Map();
+const activeIPs = new Map();
+
 io.on("connection", (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
+  // Use X-Forwarded-For if behind a proxy (like Cloudflare/Render)
+  // Otherwise, use socket.handshake.address
+  const ip = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+
+  // --- MAX 2 CONNECTIONS PER IP LOGIC ---
+  const connections = activeIPs.get(ip) || [];
+  if (connections.length >= 2) {
+    console.log(`Blocking connection from ${ip}, limit of 2 reached.`);
+    socket.disconnect(true);
+    return;
+  }
+  
+  socket.ipAddress = ip;
+  activeIPs.set(ip, [...connections, socket.id]);
+
+
+  
+  const now = Date.now();
+  const lastConnection = socketRateLimit.get(ip);
+  
+  // 1 second cooldown
+  if (lastConnection && now - lastConnection < 1000) {
+    console.log(`Blocking frequent connection from ${ip}`);
+    socket.disconnect(true);
+    return;
+  }
+  
+  socketRateLimit.set(ip, now);
+
+  console.log(`Socket connected: ${socket.id} from ${ip}. Total connections from this IP: ${[...connections, socket.id].length}`);
 
   // IMMEDIATE HANDSHAKE: Tell the client if we are ready or warming up
   socket.emit("SYSTEM_STATUS", {
@@ -285,6 +340,18 @@ io.on("connection", (socket) => {
 
   socket.on('disconnect', () => {
     console.log(`Socket disconnected: ${socket.id}`);
+    const ip = socket.ipAddress;
+    if (ip) {
+      const connections = activeIPs.get(ip) || [];
+      const newConnections = connections.filter(id => id !== socket.id);
+
+      if (newConnections.length > 0) {
+        activeIPs.set(ip, newConnections);
+      } else {
+        activeIPs.delete(ip);
+      }
+      console.log(`IP ${ip} now has ${newConnections.length} connections.`);
+    }
   });
 
   socket.on("VERIFY_SCAN", async (data) => {
@@ -452,6 +519,15 @@ io.on("connection", (socket) => {
 });
 
 
+// CLEANUP: Clear the map every 1 minute. 
+// Since we only care about the last 1 second, clearing every minute is totally safe.
+setInterval(() => {
+  socketRateLimit.clear();
+}, 60 * 1000); // Clear every 60 seconds
+
+
+
+
 
 // Lightweight Keep-Alive Route
 app.get('/ping', (req, res) => {
@@ -459,6 +535,7 @@ app.get('/ping', (req, res) => {
 });
 
 // 3. REST ROUTES
+app.use('/api', apiLimiter);
 
 app.use('/api/register', registrationRoutes);
 app.use('/api/judge', judgingRoutes);
@@ -486,6 +563,7 @@ hydrateCache().then(() => {
     process.exit(1);
 });
 
+// The port number can be configured in the .env file.
 const PORT = process.env.PORT || 5000;
 // CRITICAL: Use httpServer.listen, NOT app.listen
 httpServer.listen(PORT, () => {
