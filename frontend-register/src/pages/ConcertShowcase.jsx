@@ -1,14 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowRight, Calendar, MapPin, Loader2, 
-  Ticket, Volume2, Share2, Info, Sparkles,
-  Music, Mic2, Star, Camera
+import {
+    ArrowRight, Calendar, MapPin, Loader2,
+    Ticket, Volume2, Share2, Info, Sparkles,
+    Music, Mic2, Star, Camera
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import ConcertShowcaseSkeleton from '@/components/loading/ConcertShowcaseSkeleton';
 import API from '@/api';
+import { toast } from 'sonner';
 
 const ConcertShowcase = () => {
     const navigate = useNavigate();
@@ -24,6 +25,14 @@ const ConcertShowcase = () => {
                 setConcerts(res.data);
             } catch (err) {
                 console.error("Failed to load lineup", err);
+
+                const serverErrorMessage = err.response?.data?.error;
+
+                // 2. Show that specific message, or fallback to the generic one
+                toast.error(serverErrorMessage || err.message || "Failed to load events");
+
+                // Optional: If it's a rate limit error, you might want to stop loading
+                setLoading(false);
             } finally {
                 setLoading(false);
             }
@@ -33,7 +42,7 @@ const ConcertShowcase = () => {
 
     if (loading) {
         return (
-            <ConcertShowcaseSkeleton/>
+            <ConcertShowcaseSkeleton />
         );
     }
 
@@ -47,7 +56,7 @@ const ConcertShowcase = () => {
             <div className="fixed left-8 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 hidden xl:flex flex-col gap-10">
                 {concerts.map((_, i) => (
                     <div key={i} className="flex flex-col items-center gap-2">
-                        <span className={`text-[8px] font-black transition-colors ${activeArtist === i ? 'text-pink-500' : 'text-gray-700'}`}>0{i+1}</span>
+                        <span className={`text-[8px] font-black transition-colors ${activeArtist === i ? 'text-pink-500' : 'text-gray-700'}`}>0{i + 1}</span>
                         <div className={`w-[2px] h-10 rounded-full transition-all duration-500 ${activeArtist === i ? 'bg-pink-500 h-16' : 'bg-gray-800'}`} />
                     </div>
                 ))}
@@ -69,9 +78,9 @@ const ConcertShowcase = () => {
             {/* ARTIST SECTIONS */}
             <main className="relative">
                 {concerts.map((concert, index) => (
-                    <ArtistSection 
-                        key={concert.id} 
-                        concert={concert} 
+                    <ArtistSection
+                        key={concert.id}
+                        concert={concert}
                         index={index}
                         totalConcerts={concerts.length}
                         onBook={() => navigate(`/concerts/book/${concert.id}`)}
@@ -109,7 +118,7 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
     const yText = useTransform(scrollYProgress, [0, 1], [100, -100]);
     const imgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.2, 1, 1.2]);
     const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-    
+
     // Desktop Parallax only
     const yFocal = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
@@ -123,13 +132,13 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
     const minPrice = prices && prices.length > 0 ? Math.min(...prices) : null;
 
     return (
-        <section 
-            ref={sectionRef} 
+        <section
+            ref={sectionRef}
             // FIXED: Mobile = relative/min-h-screen | Desktop = sticky/h-screen
             className="relative lg:sticky lg:top-0 min-h-screen lg:h-screen w-full flex flex-col lg:flex-row items-center justify-center overflow-hidden border-b border-white/5 bg-black"
             style={{ zIndex: totalConcerts - index }}
         >
-            
+
             {/* BACKGROUND IMAGE */}
             <motion.div style={{ scale: imgScale, opacity }} className="absolute inset-0 z-0">
                 <img src={concert.imageUrl} alt="" className="w-full h-full object-cover grayscale brightness-[0.3]" />
@@ -144,8 +153,8 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
             </div>
 
             {/* DESKTOP FLOATING IMAGE (Hidden on Mobile) */}
-            <motion.div 
-                style={{ y: yFocal }} 
+            <motion.div
+                style={{ y: yFocal }}
                 className="absolute right-[10%] top-[15%] hidden lg:block z-10 w-[380px] h-[500px] pointer-events-none"
             >
                 <div className="w-full h-full rounded-2xl overflow-hidden border border-white/20 shadow-2xl relative">
@@ -162,7 +171,7 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
 
             {/* CONTENT GRID */}
             <div className="relative z-20 w-full max-w-7xl px-6 py-20 lg:py-0 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center lg:items-end h-full lg:pb-24">
-                
+
                 {/* 1. TITLE SECTION (Mobile: Top, Desktop: Middle) */}
                 <div className="lg:col-span-5 lg:order-2 text-center lg:text-left order-1">
                     <div className="flex items-center justify-center lg:justify-start gap-3 mb-4 lg:mb-6">
@@ -178,14 +187,14 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
                     </h3>
 
                     {/* MOBILE IMAGE (Mobile: Visible, Desktop: Hidden) */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         className="block lg:hidden w-full aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl mb-8 relative"
                     >
-                         <img src={concert.imageUrl} alt="" className="w-full h-full object-cover" />
-                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                         <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1 bg-pink-600 rounded-full">
+                        <img src={concert.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1 bg-pink-600 rounded-full">
                             <Camera size={10} className="text-white" />
                             <span className="text-[8px] font-black uppercase tracking-widest text-white">Live Visuals</span>
                         </div>
@@ -216,9 +225,9 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
 
                 {/* 3. PRICING (Mobile: Bottom, Desktop: Right) */}
                 <div className="lg:col-span-3 lg:order-3 order-3 w-full">
-                    <motion.div 
-                        initial={{ opacity: 0, y: 30 }} 
-                        whileInView={{ opacity: 1, y: 0 }} 
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
                         className="bg-white/5 backdrop-blur-2xl border border-white/10 p-6 lg:p-8 rounded-[2rem] shadow-2xl"
                     >
                         <p className="text-[12px] font-black text-gray-300 uppercase tracking-widest mb-4 flex items-center justify-between">
@@ -231,8 +240,8 @@ const ArtistSection = ({ concert, index, totalConcerts, onBook, onInView }) => {
                                 </span>
                             </div>
                         </div>
-                        <button 
-                            onClick={onBook} 
+                        <button
+                            onClick={onBook}
                             disabled={!minPrice}
                             className="w-full py-4 lg:py-5 bg-white text-black font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl flex items-center justify-center gap-3 hover:bg-pink-600 hover:text-white transition-all transform hover:scale-[1.05] disabled:bg-gray-600 disabled:cursor-not-allowed"
                         >

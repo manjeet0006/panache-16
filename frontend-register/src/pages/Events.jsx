@@ -9,6 +9,7 @@ import {
 
 import API from '../api';
 import EventSkeleton from '@/components/loading/eventSkeleton';
+import { toast } from 'sonner';
 
 const EventsExplorer = () => {
   const [searchParams] = useSearchParams();
@@ -38,6 +39,14 @@ const EventsExplorer = () => {
         setEvents(res.data);
       } catch (err) {
         console.error("Failed to fetch events", err);
+
+        const serverErrorMessage = err.response?.data?.error;
+
+        // 2. Show that specific message, or fallback to the generic one
+        toast.error(serverErrorMessage || err.message || "Failed to load events");
+
+        // Optional: If it's a rate limit error, you might want to stop loading
+        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -107,8 +116,8 @@ const EventsExplorer = () => {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`relative p-3.5 rounded-2xl border transition-all md:hidden ${showFilters || activeFiltersCount > 0
-                    ? "bg-pink-500 border-pink-500 text-white"
-                    : "bg-white/[0.05] border-white/10 text-gray-400 hover:text-white"
+                  ? "bg-pink-500 border-pink-500 text-white"
+                  : "bg-white/[0.05] border-white/10 text-gray-400 hover:text-white"
                   }`}
               >
                 <SlidersHorizontal size={20} />
@@ -171,7 +180,7 @@ const EventsExplorer = () => {
         {/* GRID SECTION */}
         {/* Changed: items-start (Prevents stretching) */}
         <div className="grid grid-cols-1 p-3 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-          
+
           {filteredEvents.length === 0 ? (
             <div className="col-span-full py-20 text-center rounded-[3rem] border border-dashed border-white/10">
               <ShieldAlert size={40} className="mx-auto text-gray-700 mb-4" />
@@ -193,10 +202,9 @@ const EventsExplorer = () => {
                 <div className="relative z-10">
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex flex-col gap-2">
-                      <span className={`w-fit text-[12px] font-black uppercase tracking-widest px-3 py-1 rounded shadow-lg italic ${
-                          event.category === 'PANACHE' ? 'bg-purple-500 shadow-purple-500/20' :
+                      <span className={`w-fit text-[12px] font-black uppercase tracking-widest px-3 py-1 rounded shadow-lg italic ${event.category === 'PANACHE' ? 'bg-purple-500 shadow-purple-500/20' :
                           event.category === 'PRAGATI' ? 'bg-cyan-500 shadow-cyan-500/20' :
-                          'bg-pink-500 shadow-pink-500/20'
+                            'bg-pink-500 shadow-pink-500/20'
                         }`}>
                         {event.category}
                       </span>
@@ -218,11 +226,11 @@ const EventsExplorer = () => {
                       {event.name}
                     </h3>
                   </div>
-                  
+
                   {/* Description: Fixed height + line clamp ensures uniform start */}
                   <div className="h-[4.5rem] mb-4">
                     <p className="text-gray-500 text-[13px] font-medium leading-relaxed line-clamp-3">
-                        {event.description}
+                      {event.description}
                     </p>
                   </div>
 
@@ -230,8 +238,8 @@ const EventsExplorer = () => {
                   <div className="mb-6">
                     <button
                       onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedEvent(expandedEvent === event.id ? null : event.id)
+                        e.stopPropagation();
+                        setExpandedEvent(expandedEvent === event.id ? null : event.id)
                       }}
                       className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.2em] text-pink-500/80 hover:text-pink-500 transition-all cursor-pointer relative z-20"
                     >

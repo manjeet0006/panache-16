@@ -304,7 +304,13 @@ const activeIPs = new Map();
 io.on("connection", (socket) => {
   // Use X-Forwarded-For if behind a proxy (like Cloudflare/Render)
   // Otherwise, use socket.handshake.address
-  const ip = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+  let ip = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+
+  // The x-forwarded-for header can be a comma-separated list of IPs.
+  // The first one is the original client IP.
+  if (ip && ip.includes(',')) {
+    ip = ip.split(',')[0].trim();
+  }
 
   // --- MAX 2 CONNECTIONS PER IP LOGIC ---
   const connections = activeIPs.get(ip) || [];
