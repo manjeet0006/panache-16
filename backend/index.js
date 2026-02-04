@@ -16,6 +16,7 @@ import metaRoutes from './routes/meta.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import concertRoutes from './routes/concertRoutes.js';
 // import emailRoutes from './routes/emailRoutes.js';
+import zlib from 'zlib';
 // import userRoutes from './routes/userRoutes'
 dotenv.config();
 
@@ -59,8 +60,21 @@ const io = new Server(httpServer, {
 });
 
 
+
 // In-memory cache
 export const ticketCache = new Map();
+
+// --- Compression Helpers ---
+function compressData(data) {
+  const jsonString = JSON.stringify(data);
+  // Use level 1 for speed, as requested
+  return zlib.gzipSync(jsonString, { level: 1 });
+}
+
+function decompressData(buffer) {
+  const uncompressed = zlib.gunzipSync(buffer);
+  return JSON.parse(uncompressed.toString());
+}
 
 // Readiness flag
 let cacheReady = false;
@@ -111,26 +125,29 @@ export async function hydrateCache() {
         const membersWithStatus = t.members.map(m => ({
           id: m.id,
           name: m.name,
-          status: m.entryLogs[0]?.type || 'EXIT'
+          // Optimization: 1 for ENTRY, 0 for EXIT
+          status: (m.entryLogs[0]?.type === 'ENTRY') ? 1 : 0
         }));
 
-        ticketCache.set(t.ticketCode, {
+        const ticketObject = {
           type: 'TEAM',
           id: t.id,
           name: t.teamName,
           payment: t.paymentStatus,
           eventDate: t.event?.eventDate, // Store event date
           eventName: t.event?.name,
-          lastStatus: t.entryLogs[0]?.type || "EXIT",
+          // Optimization: 1 for ENTRY, 0 for EXIT
+          lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0,
           members: membersWithStatus // Store member list with status
-        });
+        };
+        ticketCache.set(t.ticketCode, compressData(ticketObject));
       }
     });
 
     // 4. Load Concert Tickets into Cache
     concertTickets.forEach(t => {
       if (t.arenaCode) {
-        ticketCache.set(t.arenaCode, {
+        const ticketObject = {
           type: 'CONCERT',
           id: t.id,
           name: t.guestName,
@@ -138,8 +155,10 @@ export async function hydrateCache() {
           isEnterMainGate: t.isEnterMainGate, // <--- Store in cache
           tier: t.tier,
           concertDate: t.concert?.date, // Add concert date
-          lastStatus: t.entryLogs[0]?.type || "EXIT", // Add last status
-        });
+          // Optimization: 1 for ENTRY, 0 for EXIT
+          lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0, // Add last status
+        };
+        ticketCache.set(t.arenaCode, compressData(ticketObject));
       }
     });
 
@@ -156,7 +175,7 @@ export async function updateTeamInCache(teamId) {
             where: { id: teamId },
             select: {
                 ticketCode: true, id: true, teamName: true, paymentStatus: true,
-                event: { select: { eventDate: true } }, // Include event date
+                event: { select: { eventDate: true, name: true } },
                 entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
                 members: {
                   select: {
@@ -171,18 +190,20 @@ export async function updateTeamInCache(teamId) {
             const membersWithStatus = t.members.map(m => ({
               id: m.id,
               name: m.name,
-              status: m.entryLogs[0]?.type || 'EXIT'
+              status: (m.entryLogs[0]?.type === 'ENTRY') ? 1 : 0
             }));
 
-            ticketCache.set(t.ticketCode, {
+            const ticketObject = {
                 type: 'TEAM',
                 id: t.id,
                 name: t.teamName,
                 payment: t.paymentStatus,
-                eventDate: t.event?.eventDate, // Store event date
-                lastStatus: t.entryLogs[0]?.type || "EXIT",
+                eventDate: t.event?.eventDate,
+                eventName: t.event?.name,
+                lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0,
                 members: membersWithStatus
-            });
+            };
+            ticketCache.set(t.ticketCode, compressData(ticketObject));
             console.log(`✅ TEAM CACHE UPDATED: ${t.teamName}`);
         }
     } catch (err) {
@@ -202,16 +223,17 @@ export async function updateConcertTicketInCache(ticketId) {
         });
 
         if (t && t.arenaCode) {
-            ticketCache.set(t.arenaCode, {
+            const ticketObject = {
                 type: 'CONCERT',
                 id: t.id,
                 name: t.guestName,
                 isEnterArena: t.isEnterArena,
-                isEnterMainGate: t.isEnterMainGate, // <--- Added here
+                isEnterMainGate: t.isEnterMainGate,
                 tier: t.tier,
-                concertDate: t.concert?.date, // Add concert date
-                lastStatus: t.entryLogs[0]?.type || "EXIT",
-            });
+                concertDate: t.concert?.date,
+                lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0,
+            };
+            ticketCache.set(t.arenaCode, compressData(ticketObject));
             console.log(`✅ CONCERT CACHE UPDATED: ${t.guestName}`);
         }
     } catch (err) {
@@ -233,8 +255,8 @@ io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
   // IMMEDIATE HANDSHAKE: Tell the client if we are ready or warming up
-  socket.emit("SYSTEM_STATUS", { 
-    isReady: cacheReady 
+  socket.emit("SYSTEM_STATUS", {
+    isReady: cacheReady
   });
 
   socket.on('disconnect', () => {
@@ -247,11 +269,14 @@ io.on("connection", (socket) => {
     }
 
     const { ticketCode, scannerId } = data;
-    const ticket = ticketCache.get(ticketCode);
+    const buffer = ticketCache.get(ticketCode);
 
-    if (!ticket) {
+    if (!buffer) {
       return socket.emit("SCAN_ERROR", { error: "Ticket Not Found" });
     }
+
+    const ticket = decompressData(buffer);
+
 
     // --- 1. DATE VALIDATION (TIMEZONE-AWARE) ---
     // All dates are compared in the event's local timezone to avoid server timezone issues.
@@ -284,9 +309,10 @@ io.on("connection", (socket) => {
 
         // Update cache & DB for Celebrity Gate
         ticket.isEnterArena = true;
-        prisma.concertTicket.update({ 
-            where: { id: ticket.id }, 
-            data: { isEnterArena: true } 
+        ticketCache.set(ticketCode, compressData(ticket)); // Re-compress and save
+        prisma.concertTicket.update({
+            where: { id: ticket.id },
+            data: { isEnterArena: true }
         }).catch(console.error);
 
         socket.emit("SCAN_SUCCESS", {
@@ -302,22 +328,26 @@ io.on("connection", (socket) => {
           socket.emit("SCAN_TEAM_DETAILS", {
             teamName: ticket.name,
             teamId: ticket.id,
-            members: ticket.members
+            members: ticket.members.map(m => ({ // Decode status for frontend
+                ...m,
+                status: m.status === 1 ? 'ENTRY' : 'EXIT'
+            }))
           });
         } else if (ticket.type === 'CONCERT') {
-          
+
           // Check specifically for Main Gate entry
           if (ticket.isEnterMainGate) {
             return socket.emit("SCAN_ERROR", { error: "Pass Already Used at Main Gate" });
           }
-  
+
           // Update cache & DB for Main Gate
           ticket.isEnterMainGate = true;
-          prisma.concertTicket.update({ 
-              where: { id: ticket.id }, 
-              data: { isEnterMainGate: true } 
+          ticketCache.set(ticketCode, compressData(ticket)); // Re-compress and save
+          prisma.concertTicket.update({
+              where: { id: ticket.id },
+              data: { isEnterMainGate: true }
           }).catch(console.error);
-  
+
           socket.emit("SCAN_SUCCESS", {
             action: "ENTRY",
             teamName: ticket.name,
@@ -332,7 +362,19 @@ io.on("connection", (socket) => {
   });
 
   socket.on("TOGGLE_MEMBER_STATUS", async ({ teamId, memberId, memberName, scannerId }) => {
-    const teamTicket = [...ticketCache.values()].find(t => t.id === teamId && t.type === 'TEAM');
+    // This is inefficient, but it matches the old logic's intent in a compressed world.
+    // A better solution would be a secondary map from teamId -> ticketCode.
+    let teamTicketCode = null;
+    let teamTicket = null;
+
+    for (const [key, value] of ticketCache.entries()) {
+        const decompressed = decompressData(value);
+        if (decompressed.type === 'TEAM' && decompressed.id === teamId) {
+            teamTicket = decompressed;
+            teamTicketCode = key;
+            break;
+        }
+    }
 
     if (!teamTicket) {
       return socket.emit("SCAN_ERROR", { error: "Team not found in cache" });
@@ -346,9 +388,13 @@ io.on("connection", (socket) => {
     }
 
     // Determine next action and update cache
-    const currentStatus = member.status || 'EXIT';
-    const nextAction = currentStatus === 'ENTRY' ? 'EXIT' : 'ENTRY';
-    member.status = nextAction; // Update status in the cached object
+    const currentStatus = member.status || 0; // 0 for 'EXIT'
+    const nextAction = currentStatus === 1 ? 0 : 1; // Toggle between 1 (ENTRY) and 0 (EXIT)
+    member.status = nextAction; // Update status in the decompressed object
+
+    // Re-compress and save the updated object
+    ticketCache.set(teamTicketCode, compressData(teamTicket));
+
 
     // Log the event to the database
     prisma.entryLog.create({
@@ -356,23 +402,27 @@ io.on("connection", (socket) => {
         teamId: teamTicket.id,
         memberId: memberId, // <<< Critically, log the specific member
         scannerId: scannerId || "MAIN_GATE_MEMBER_LOG",
-        type: nextAction,
+        type: nextAction === 1 ? 'ENTRY' : 'EXIT', // Log string to DB
         dayNumber: 1, // Assuming day 1, this could be dynamic
       }
     }).catch(console.error); // Log errors silently on the server
 
     // Notify the frontend of success
+    const actionString = nextAction === 1 ? 'ENTRY' : 'EXIT';
     socket.emit("MEMBER_LOG_SUCCESS", {
-      action: nextAction,
+      action: actionString,
       memberName: memberName,
       teamName: teamTicket.name,
-      message: `${memberName} from ${teamTicket.name} logged for ${nextAction}.`
+      message: `${memberName} from ${teamTicket.name} logged for ${actionString}.`
     });
 
     // Also, broadcast the updated team details so all scanners are aware
     io.emit("TEAM_MEMBERS_UPDATED", {
       teamId: teamTicket.id,
-      members: teamTicket.members,
+      members: teamTicket.members.map(m => ({ // Also decode here
+          ...m,
+          status: m.status === 1 ? 'ENTRY' : 'EXIT'
+      })),
     });
   });
 });
