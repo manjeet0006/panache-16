@@ -84,87 +84,111 @@ export async function hydrateCache() {
   try {
     console.log("🔥 Hydrating cache...");
     const start = Date.now();
+    const CHUNK_SIZE = 500; // Process 500 records at a time to conserve memory
 
-    // 1. Fetch Teams and Concert Tickets in Parallel
-    const [teams, concertTickets] = await Promise.all([
-      prisma.team.findMany({
+    ticketCache.clear();
+    console.log("  - Cache cleared.");
+
+    // --- Process Teams in Chunks ---
+    let teamCursor = undefined;
+    let teamsProcessed = 0;
+    while (true) {
+      console.log(`  - Fetching team chunk... (cursor: ${teamCursor})`);
+      const teams = await prisma.team.findMany({
+        take: CHUNK_SIZE,
+        ...(teamCursor && { skip: 1, cursor: { id: teamCursor } }), // Paginate using the cursor
         select: {
           ticketCode: true,
           id: true,
           teamName: true,
           paymentStatus: true,
-          event: { select: { eventDate: true ,name: true } }, // Include event date
+          event: { select: { eventDate: true, name: true } },
           entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } },
           members: {
-            select: {
-              id: true, name: true,
-              entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
-            }
+            select: { id: true, name: true, entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } } }
           }
         }
-      }),
-      prisma.concertTicket.findMany({
+      });
+
+      if (teams.length === 0) {
+        break; // No more teams to process
+      }
+
+      teams.forEach(t => {
+        if (t.ticketCode) {
+          const membersWithStatus = t.members.map(m => ({
+            id: m.id,
+            name: m.name,
+            status: (m.entryLogs[0]?.type === 'ENTRY') ? 1 : 0
+          }));
+          const ticketObject = {
+            type: 'TEAM',
+            id: t.id,
+            name: t.teamName,
+            payment: t.paymentStatus,
+            eventDate: t.event?.eventDate,
+            eventName: t.event?.name,
+            lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0,
+            members: membersWithStatus
+          };
+          ticketCache.set(t.ticketCode, compressData(ticketObject));
+        }
+      });
+
+      teamCursor = teams[teams.length - 1].id;
+      teamsProcessed += teams.length;
+      console.log(`  - Processed ${teams.length} teams. Total teams processed: ${teamsProcessed}`);
+    }
+
+    // --- Process Concert Tickets in Chunks ---
+    let ticketCursor = undefined;
+    let ticketsProcessed = 0;
+    while (true) {
+      console.log(`  - Fetching concert ticket chunk... (cursor: ${ticketCursor})`);
+      const concertTickets = await prisma.concertTicket.findMany({
+        take: CHUNK_SIZE,
+        ...(ticketCursor && { skip: 1, cursor: { id: ticketCursor } }), // Paginate
         select: {
           arenaCode: true,
           id: true,
           guestName: true,
           isEnterArena: true,
-          isEnterMainGate: true, // <--- Add this
+          isEnterMainGate: true,
           tier: true,
-          concert: { select: { date: true } }, // Include concert date
+          concert: { select: { date: true } },
           entryLogs: { orderBy: { scannedAt: "desc" }, take: 1, select: { type: true } }
         }
-      })
-    ]);
+      });
 
-    ticketCache.clear();
-
-    // 3. Load Teams into Cache
-    teams.forEach(t => {
-      if (t.ticketCode) {
-        const membersWithStatus = t.members.map(m => ({
-          id: m.id,
-          name: m.name,
-          // Optimization: 1 for ENTRY, 0 for EXIT
-          status: (m.entryLogs[0]?.type === 'ENTRY') ? 1 : 0
-        }));
-
-        const ticketObject = {
-          type: 'TEAM',
-          id: t.id,
-          name: t.teamName,
-          payment: t.paymentStatus,
-          eventDate: t.event?.eventDate, // Store event date
-          eventName: t.event?.name,
-          // Optimization: 1 for ENTRY, 0 for EXIT
-          lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0,
-          members: membersWithStatus // Store member list with status
-        };
-        ticketCache.set(t.ticketCode, compressData(ticketObject));
+      if (concertTickets.length === 0) {
+        break; // No more tickets to process
       }
-    });
 
-    // 4. Load Concert Tickets into Cache
-    concertTickets.forEach(t => {
-      if (t.arenaCode) {
-        const ticketObject = {
-          type: 'CONCERT',
-          id: t.id,
-          name: t.guestName,
-          isEnterArena: t.isEnterArena,
-          isEnterMainGate: t.isEnterMainGate, // <--- Store in cache
-          tier: t.tier,
-          concertDate: t.concert?.date, // Add concert date
-          // Optimization: 1 for ENTRY, 0 for EXIT
-          lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0, // Add last status
-        };
-        ticketCache.set(t.arenaCode, compressData(ticketObject));
-      }
-    });
+      concertTickets.forEach(t => {
+        if (t.arenaCode) {
+          const ticketObject = {
+            type: 'CONCERT',
+            id: t.id,
+            name: t.guestName,
+            isEnterArena: t.isEnterArena,
+            isEnterMainGate: t.isEnterMainGate,
+            tier: t.tier,
+            concertDate: t.concert?.date,
+            lastStatus: (t.entryLogs[0]?.type === 'ENTRY') ? 1 : 0,
+          };
+          ticketCache.set(t.arenaCode, compressData(ticketObject));
+        }
+      });
+
+      ticketCursor = concertTickets[concertTickets.length - 1].id;
+      ticketsProcessed += concertTickets.length;
+      console.log(`  - Processed ${concertTickets.length} tickets. Total tickets processed: ${ticketsProcessed}`);
+    }
 
     cacheReady = true;
-    console.log(`⚡ Cache Ready: ${ticketCache.size} tickets in ${Date.now() - start}ms`);
+    console.log(`⚡ Cache Ready: ${ticketCache.size} total tickets in ${Date.now() - start}ms`);
   } catch (err) {
+    // This will now catch errors from any chunk and log them.
     console.error("❌ Cache hydration failed:", err);
   }
 }
@@ -457,6 +481,9 @@ export { io };
 hydrateCache().then(() => {
   console.log("✅ Hydration Finished");
   notifySystemReady(); // <--- Notify all connected clients
+}).catch(err => {
+    console.error("Cache hydration failed, shutting down.", err);
+    process.exit(1);
 });
 
 const PORT = process.env.PORT || 5000;
