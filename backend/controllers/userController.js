@@ -64,6 +64,7 @@ export const getMyHistory = async (req, res) => {
                         name: true,
                         category: true,
                         eventPrice: true,
+                        dateLabel: true,
                     }
                 },
                 members: true,

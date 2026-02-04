@@ -56,7 +56,7 @@ const TicketDashboard = () => {
         );
     }
 
-    console.log(selectedTicket);
+    // console.log(selectedTicket);
     // --- 2. TICKET DASHBOARD (Main View) ---
     return (
         <div className="min-h-screen bg-[#050505] font-sans selection:bg-pink-500 relative">

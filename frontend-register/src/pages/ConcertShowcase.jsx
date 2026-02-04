@@ -20,7 +20,7 @@ const ConcertShowcase = () => {
         const fetchData = async () => {
             try {
                 const res = await API.get('/concert/all');
-                console.log(res.data);
+                // console.log(res.data);
                 setConcerts(res.data);
             } catch (err) {
                 console.error("Failed to load lineup", err);

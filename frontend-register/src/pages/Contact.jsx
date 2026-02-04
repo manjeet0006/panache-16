@@ -102,7 +102,7 @@ const Contact = () => {
 
         const payload = { ...formData };
 
-        console.log("SENDING DATA:", payload);
+        // console.log("SENDING DATA:", payload);
 
         // Optimistic UI
         setShowSuccess(true);
