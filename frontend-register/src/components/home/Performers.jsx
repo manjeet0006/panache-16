@@ -284,13 +284,13 @@ const Performers = () => {
                             </div>
                         </div>
                         <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter">
-                            Legends at <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">VGU</span>
+                        Celebs at <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">VGU</span>
                         </h2>
                     </div>
 
                     <div className="hidden md:block mb-2">
                         <ModernButton onClick={() => navigate("/")}>
-                            View Ticket
+                           <span className=" text-sm" >Buy Ticket  </span> 
                         </ModernButton>
                     </div>
                 </div>

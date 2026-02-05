@@ -62,7 +62,7 @@ const RegistrationModal = ({ show, onClose }) => {
               <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-white mb-3">
                 Identify Yourself
               </h2>
-              <p className="text-gray-400 text-sm font-medium leading-relaxed mb-8">
+              <p className="text-gray-400  text-sm font-medium leading-relaxed mb-10">
                 Select your category to access the registration portal.
               </p>
 
@@ -72,14 +72,14 @@ const RegistrationModal = ({ show, onClose }) => {
                   onClick={() => navigate('/events?isVgu=true')} 
                   variant="primary"
                 >
-                  <School size={20} /> <span className="px-11" >VGU Student</span>  
+                  <School size={20} /> <span className="px-11 text-[15px] font-extrabold " >VGU Student</span>  
                 </ModernButton>
                 
                 <ModernButton 
                   onClick={() => navigate('/events?isVgu=false')} 
                   variant="secondary"
                 >
-                  <Globe size={20} /> External Participant
+                  <Globe size={20} /> <span className=" text-[15px] font-extrabold " >External Participant</span>
                 </ModernButton>
               </div>
 
@@ -91,7 +91,7 @@ const RegistrationModal = ({ show, onClose }) => {
                     onClick={() => navigate('/terms-and-conditions')} 
                     className="text-pink-600 hover:text-pink-400 hover:underline mt-1 transition-colors"
                   >
-                    Terms & Protocols
+                    Terms & Conditions
                   </button>
                 </p>
               </div>

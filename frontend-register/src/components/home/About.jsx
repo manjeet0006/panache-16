@@ -9,14 +9,14 @@ const VGU_DATA = [
     id: "mission",
     title: "Our Mission",
     icon: <Target size={32} />,
-    text: "To focus on the holistic development of students by offering quality education, research exposure, and innovation opportunities, nurturing them into responsible global citizens.",
+    text: "To bring together students from varied backgrounds and disciplines, fostering collaboration, innovation, and experiential learning through a multidimensional festival experience.",
     gradient: "from-blue-500 to-cyan-500",
   },
   {
     id: "vision",
     title: "Our Vision",
     icon: <Eye size={32} />,
-    text: "To be a globally recognized institution committed to excellence in education, research, and entrepreneurship, fostering sustainable growth and societal development.",
+    text: "To create an inclusive and dynamic festival that nurtures talent across culture, sports, and technology.",
     gradient: "from-purple-500 to-pink-500",
   },
 ];
@@ -82,17 +82,17 @@ const About = () => {
 
             <div className="space-y-6 text-gray-400 text-lg leading-relaxed">
               <p>
-                <strong className="text-white">Panache</strong> is not just a cultural fest; it is the heartbeat of <strong className="text-white">Vivekananda Global University</strong>. It is a fusion of art, technology, and pure adrenaline—a 8-day spectacle where talent meets opportunity.
+                <strong className="text-white">Panache</strong> is the flagship annual festival of <strong className="text-white">Vivekananda Global University, Jaipur</strong> and has evolved into a comprehensive celebration of culture, sports, and technology. It is 8-Day Spectacle where talent meets opportunity.
               </p>
               <p>
-                From electrifying pro-nites featuring India's top artists to intense technical battles and high-fashion runways, Panache is where memories are forged in neon and sound.
+                What began as a cultural showcase has grown into a multidisciplinary platform that brings together creativity, competition, and innovation under one unified festival experience.
               </p>
             </div>
 
             {/* Stat Row */}
             <div className="grid grid-cols-3 gap-6 mt-10 border-t border-white/10 pt-8">
                {[
-                 { label: "Footfall", value: "15K+" },
+                 { label: "Footfall", value: "20K+" },
                  { label: "Events", value: "40+" },
                  { label: "Colleges", value: "45+" }
                ].map((stat, i) => (

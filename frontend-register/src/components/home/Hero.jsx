@@ -42,8 +42,8 @@ const Hero = ({ setShowModal }) => {
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-4 md:mb-8">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              VGU Campus • Season 16
+            <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+              Edition 16
             </span>
           </div>
         </div>
@@ -57,7 +57,7 @@ const Hero = ({ setShowModal }) => {
       <ActiveScrollReveal delay={0.2} direction="up">
         <div className="text-center mb-6 md:mb-16">
           <p className="text-gray-400 font-medium text-sm md:text-lg tracking-wide">
-            The Biggest Cultural Festival
+            The Annual Festival of Culture, Sports and Technology.
           </p>
         </div>
       </ActiveScrollReveal>

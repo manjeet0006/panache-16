@@ -8,7 +8,7 @@ import ActiveScrollReveal from "../common/ActiveScrollReveal";
 import CountingNumber from "../common/CountingNumber";
 
 const STATISTICS = [
-  { label: "Footfall", value: 15000, suffix: "+", icon: Users },
+  { label: "Footfall", value: 20000, suffix: "+", icon: Users },
   { label: "Universities", value: 45, suffix: "+", icon: School },
   { label: "Prize Pool", value: 5, suffix: "L+", icon: Trophy },
   { label: "Events", value: 50, suffix: "+", icon: Layers },

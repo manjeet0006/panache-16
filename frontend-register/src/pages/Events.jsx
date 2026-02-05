@@ -29,7 +29,7 @@ const EventsExplorer = () => {
   const CATEGORIES = [
     { id: 'PANACHE', label: 'Panache', icon: Music },
     { id: 'PRAGATI', label: 'Pragati', icon: Cpu },
-    { id: 'PRATISHTHA', label: 'Pratishtha', icon: Trophy }
+    { id: 'PRATISTHA', label: 'PRATISTHA', icon: Trophy }
   ];
 
   useEffect(() => {

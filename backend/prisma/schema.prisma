@@ -254,7 +254,7 @@ enum LogType {
 
 enum EventCategory {
   PANACHE
-  PRATISHTHA
+  PRATISTHA
   PRAGATI
 }
 

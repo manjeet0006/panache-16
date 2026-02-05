@@ -108,7 +108,7 @@ export const getEvents = async (req, res) => {
 
     const categorized = {
       PANACHE: { internal: [], outside: [] },
-      PRATISHTHA: { internal: [], outside: [] },
+      PRATISTHA: { internal: [], outside: [] },
       PRAGATI: { internal: [], outside: [] },
     };
 

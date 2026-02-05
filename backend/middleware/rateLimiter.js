@@ -1,14 +1,4 @@
-import rateLimit from 'express-rate-limit';
-
-// Helper function to get the REAL IP
-const getRealIp = (req) => {
-
-    const forwarded = req.headers['x-forwarded-for'];
-
-    if (forwarded) return forwarded.split(',')[0].trim();
-
-    return req.ip;
-};
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 export const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -17,7 +7,7 @@ export const apiLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 
-    keyGenerator: getRealIp 
+    keyGenerator: ipKeyGenerator
 });
 
 export const registrationLimiter = rateLimit({
@@ -27,5 +17,5 @@ export const registrationLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
 
-    keyGenerator: getRealIp
+    keyGenerator: ipKeyGenerator
 });

@@ -395,7 +395,7 @@ const Dashboard = () => {
                                 />
                             </div>
                             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-                                {['ALL', 'PANACHE', 'PRATISHTHA', 'PRAGATI'].map((cat) => (
+                                {['ALL', 'PANACHE', 'PRATISTHA', 'PRAGATI'].map((cat) => (
                                     <button
                                         key={cat}
                                         onClick={() => setActiveFilter(cat)}

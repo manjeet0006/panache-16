@@ -18,7 +18,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import API from "../../api";
 
-const CATEGORIES = ["PANACHE", "PRAGATI", "PRATISHTHA"];
+const CATEGORIES = ["PANACHE", "PRAGATI", "PRATISTHA"];
 
 const emptyForm = {
   name: "",
@@ -68,8 +68,8 @@ export default function Events() {
       ...(eventData.PANACHE?.outside || []),
       ...(eventData.PRAGATI?.internal || []),
       ...(eventData.PRAGATI?.outside || []),
-      ...(eventData.PRATISHTHA?.internal || []),
-      ...(eventData.PRATISHTHA?.outside || []),
+      ...(eventData.PRATISTHA?.internal || []),
+      ...(eventData.PRATISTHA?.outside || []),
     ];
 
     return allEvents.filter((e) => {
@@ -154,7 +154,7 @@ export default function Events() {
     switch (cat) {
         case "PANACHE": return "text-purple-400 border-purple-500/30 bg-purple-500/10";
         case "PRAGATI": return "text-blue-400 border-blue-500/30 bg-blue-500/10";
-        case "PRATISHTHA": return "text-amber-400 border-amber-500/30 bg-amber-500/10";
+        case "PRATISTHA": return "text-amber-400 border-amber-500/30 bg-amber-500/10";
         default: return "text-gray-400 border-gray-500/30 bg-gray-500/10";
     }
   };

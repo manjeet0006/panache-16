@@ -14,14 +14,12 @@ const Faq = () => {
         <ActiveScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
             <div>
-              <h3 className="text-4xl font-black uppercase italic tracking-tighter mb-6">
+              <h3 className="text-5xl font-black uppercase italic tracking-tighter mb-6">
                 Protocol <br />{" "}
                 <span className="text-pink-500">Overview</span>
               </h3>
-              <p className="text-gray-400 leading-relaxed mb-8">
-                Before entering the arena, ensure you are equipped with the
-                mandatory credentials. The VGU Campus operates on strict
-                digital & physical verification protocols.
+              <p className="text-gray-400 text-[15px] font-bold leading-relaxed mb-8">
+                Before getting started, please take a moment to read the rules and protocol to ensure a smooth and fair experience for everyone.
               </p>
               <ModernButton
                 onClick={() => navigate("/terms-and-conditions")}
@@ -39,13 +37,13 @@ const Faq = () => {
                 },
                 {
                   icon: Fingerprint,
-                  title: "Zolo Access",
+                  title: "ScholarZ Access",
                   desc: "App mandatory for entry.",
                 },
                 {
                   icon: Ticket,
-                  title: "One Event Rule",
-                  desc: "Single participation limit applied.",
+                  title: "Participation Policy",
+                  desc: "Each student can participate in only one category.",
                 },
               ].map((item, i) => (
                 <div
@@ -57,7 +55,7 @@ const Faq = () => {
                     <h4 className="font-bold uppercase tracking-wider text-sm">
                       {item.title}
                     </h4>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 mt-1">
                       {item.desc}
                     </p>
                   </div>
