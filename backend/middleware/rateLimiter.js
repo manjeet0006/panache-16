@@ -12,7 +12,7 @@ const getRealIp = (req) => {
 
 export const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Increased to 100 (50 is too low if frontend has bugs)
+    max: 100, // Increased to 100 (50 is too low if frontend has bugs)
     message: { error: "Too many attempts, please try again after 15 minutes" },
     standardHeaders: true,
     legacyHeaders: false,

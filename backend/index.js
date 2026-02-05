@@ -36,7 +36,7 @@ const allowedOrigins = [
   "https://panache-16.vercel.app",
   "https://panache-16-gghv.vercel.app",
   "https://adminpanache16.vercel.app",
-  // "*"
+  "*"
 ];
 
 
@@ -540,13 +540,13 @@ app.get('/ping', (req, res) => {
   res.status(200).send('Pong');
 });
 
+app.use('/api/admin', adminRoutes);
 // 3. REST ROUTES
 app.use('/api', apiLimiter);
 
 app.use('/api/register', registrationRoutes);
 app.use('/api/judge', judgingRoutes);
 app.use('/api/scan', scanningRoutes); // Keep for history/manual lookups
-app.use('/api/admin', adminRoutes);
 app.use('/api/meta', metaRoutes);
 
 app.use('/api/concert', concertRoutes);

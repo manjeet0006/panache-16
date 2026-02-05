@@ -58,6 +58,8 @@ model Event {
   allowOutside Boolean @default(false)
 
   eventPrice String @default("0")
+  vguPrice   String @default("0")
+  outsiderPrice String @default("0")
 
   invites EventInvite[]
   teams   Team[]

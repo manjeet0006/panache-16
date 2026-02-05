@@ -5,6 +5,11 @@ const prisma = new PrismaClient();
 export const getColleges = async (req, res) => {
     try {
         const colleges = await prisma.college.findMany({
+            select: {
+                id: true,
+                name: true,
+                isInternal: true,
+            },
             orderBy: { name: 'asc' }
         });
         res.json(colleges);
